@@ -1,0 +1,52 @@
+---
+title: "Practical Tools HW1"
+author: "Stacey & Chendi"
+date: "1/22/2022"
+output: html_document
+---
+```{r, echo=FALSE}
+library(PracTools)
+library(tidyverse)
+library(knitr)
+```
+##1.
+```{r}
+p_U=c(0.71,0.52,0.07)
+a=round(nProp(CV0=0.1,pU=p_U),digits = 0)
+b=round(nProp(V0=(0.03)^2,pU=p_U),digits = 0)
+c=round(nPropMoe(moe.sw=1,e=0.03,alpha=0.05,pU=p_U),digits = 0)
+```
+
+d)
+```{r}
+sampsize<-cbind(a,b,c)
+rownames(sampsize) <- c('71%','52%','7%')
+sampsize
+round(1.96*sqrt((1-0.71)*0.71/sampsize[1:3,]),digits = 3)
+```
+
+in a), as $n=\frac{\frac{q_U}{p_U}}{CV_0}$, the sample size will be larger for rare characteristics than for more prevalent ones given a fixed $CV_0$.
+in b), as $n=\frac{p_U*q_U}{V_0}$, the sample size will be larger when $p_U*q_U$ is maximized when $p_U$ is close to 50% given a fixed $V_0$.
+in c),as $n=s^2_\frac{1-\alpha}{2}*\frac{p_Uq_U}{e^2}$,the sample size will also be larger when $p_U*q_U$ is maximized when $p_U$ is close to 50% given a fixed $e^2$.
+
+Therefore, the largest sample size occurs in sampling part-time workers who enrolled in vision programs in a), and occurs in sampling 52% full-time workers who enrolled in medical care plans in b)&c)
+
+##2.
+```{r}
+p_U<-c(0.01,0.05,seq(0.1,0.9,0.1),0.95,0.99)
+q_U=1-p_U
+CV<-round(sqrt((q_U/p_U)/100),digits = 4)
+sqrt_V<-round(sqrt((q_U*p_U)/100),digits=4)
+Estimate<-cbind.data.frame(p_U,q_U,CV,sqrt_V)
+Estimate
+
+ggplot(Estimate, aes(p_U)) + 
+  geom_line(aes(y = CV, colour = "CV"))+geom_point(aes(y = CV, colour = "CV")) + 
+  geom_line(aes(y = sqrt_V, colour = "sqrt_V"))+geom_point(aes(y = sqrt_V, colour = "sqrt_V"))+
+  theme(axis.title.y=element_blank())
+```
+
+From the plot,  we observed that:
+1. As $p_U$ increases, $CV$ decreases dramaticly
+2. Less changes in $\sqrt{V}$ compared to $CV$ As $p_U$ increases,$\sqrt{V}$ increases to the maximum value when $p_U=0.5$ and then decreases back to 0.
+In terms of sampling population with rare characteristic, $CV$ would be much larger than $\sqrt{V}$ under the same $p_U$. Therefore, setting a $\sqrt{V}$ would be better in this case.
