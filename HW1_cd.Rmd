@@ -1,6 +1,6 @@
 ---
 title: "Practical Tools HW1"
-author: "Stacey & Chendi"
+author: "Stacey Frank & Chendi Zhao"
 date: "1/22/2022"
 output: html_document
 ---
