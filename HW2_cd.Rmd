@@ -28,22 +28,21 @@ b) You can assess the probability of collecting no cases with the rare trait for
 
 b)
 ```{r, results='hide'}
-data(smho98)
+data("smho98")
 dim(smho98)
 head(smho98)
 ```
 
 
 ```{r}
-#The unit relvariance is the population relvariance, which is the square of the population coefficient of variation 
-#using formulas on pg 26; should N or N-1 be the denominator of S^2_U? Currently am using N-1
+#The unit relvariance is the population relvariance, which is the square of the population coefficient of variation; formula on pg 26 
 
 attach(smho98)
-EXPTOTAL.RV <- var(EXPTOTAL)/mean(EXPTOTAL)
-BEDS.RV <- var(BEDS)/mean(BEDS)
-SEENCNT.RV <- var(SEENCNT)/mean(SEENCNT)
-EOYCNT.RV <- var(EOYCNT)/mean(EOYCNT)
-Y_IP.RV <- var(Y_IP)/mean(Y_IP)
+EXPTOTAL.RV <- var(EXPTOTAL)/(mean(EXPTOTAL)^2)
+BEDS.RV <- var(BEDS)/(mean(BEDS)^2)
+SEENCNT.RV <- var(SEENCNT)/(mean(SEENCNT)^2)
+EOYCNT.RV <- var(EOYCNT)/(mean(EOYCNT)^2)
+Y_IP.RV <- var(Y_IP)/(mean(Y_IP)^2)
 
 Relvars <- cbind(EXPTOTAL.RV, BEDS.RV, SEENCNT.RV, EOYCNT.RV, Y_IP.RV)
 print(Relvars)
