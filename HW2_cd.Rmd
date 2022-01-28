@@ -1,14 +1,9 @@
 ---
-title: "HW2"
+title: "HW2_cd"
 author: "Stacey & Chendi"
-date: "1/25/2022"
+date: "1/27/2022"
 output: html_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ## Packages 
 ```{r, echo=FALSE}
 library(PracTools)
@@ -16,64 +11,59 @@ library(tidyverse)
 library(janitor)
 ```
 
-## 3.
-###data
 ```{r}
-data(hospital)
+See VDK P66-67 Example 3.16
+#x<-c(70,160,227,235,275,300,310,378,400,461,472,474,498,562,584,635,670,712,760,816)
+#y<-c(244,402,732,925,632,557,1226,896,2190,1948,1239,1258,1657,2116,1326,1606,1707,2089,1283,1239)
+#sample<-cbind.data.frame(x,y)
+#n=20
+
+
 sample<-read.table("C:/Users/cd_zh/Desktop/745/Hospital_50.txt",header = T,sep = ",")
-```
+sample<-rename(sample,x=BEDS,y=DISCHARGE)
 
-###3(a)
-```{r}
 N=393
-n=50
+n=35
 N_bed=107956
-n_bed=sum(sample$BEDS)
-
-p_i=sample$BEDS/N_bed
-weights=1/(p_i*n)
-#or
-weights=N_bed/n/sample$BEDS
+n_bed=sum(sample$x)
+#a
+p_i<-sample$x/N_bed
+w_i=1/(p_i*n)
+#verify
+sum(w_i*sample$x)
+round(w_i,digit=2)
 ```
-
+#a
 If the design weights are correct, the sum of number of beds in each sampled hosptital*weight should be the total number of beds in the population(107956)
-
 ```{r}
-sum(weights*sample$BEDS)
-round(weights,digit=2)
-```
-
-The design weights are shown above.
-###3(b)
-```{r}
-y_bar_bed=round(sum(sample$DISCHARGE/(n*p_i))/N,2)
+#b  
+(3.31)
+y_bar_bed=round(sum(sample$y/(p_i))/(N*n),2)
 y_bar_bed
 ```
+The mean of discharges based on the sample using the $\pi$-estimator is  1060.62
+.
 
-The mean of discharges based on the sample using the $\pi$-estimator is  742.43.
-###3(c)
 ```{r}
-V_hat_1_c=sum(((sample$DISCHARGE/p_i)-mean(sample$DISCHARGE/p_i))^2)/(n-1)
-V_hat_1_c
-
+#c
+(3.41)
+V_hat_1_c=n^2*sum((w_i*sample$y-mean(w_i*sample$y))^2)/(n-1)
+V_hat_1_c=sum((sample$y/p_i-mean(sample$y/p_i))^2)/(n-1)
+(3.32)
 V_y_bar_wr=V_hat_1_c/(N^2*n)
-round(V_y_bar_wr,2)
+V_y_bar_wr
 ```
+The estimated variance of the mean of discharges is 1221.01
+Observation:??? 
 
-The estimated variance of the mean of discharges is 593.06
-
-Observation:???
-
-###3(e)
 ```{r}
-q_i=sqrt(sample$BEDS)/sum(sqrt(hospital$x))
-V_hat_1_e=mean((sample$DISCHARGE)^2/(p_i*q_i))-(mean(sample$DISCHARGE/p_i))^2+V_hat_1_c
+#e
+(3.43)
+V_hat_1_e=sum(sqrt(hospital$x))*sum(((sample$y)^2/(sqrt(sample$x)*p_i)))/n-(sum(sample$y/p_i)/n)^2+V_y_bar_wr*N^2
 V_hat_1_e
-
-N_new=V_hat_1_e/(N*mean(hospital$y)*0.15)^2
+(3.33)
+N_new=V_hat_1_e/((N*mean(hospital$y)*0.15)^2)
 ceiling(N_new)
 ```
-
-If we select a new sample with probabilities proportional to the square of root of beds. The appropriate $V_1$ in this case would be 42427171200. And to meet the target CV, we need to sample 19 hospitals.
-
+If we select a new sample with probabilities proportional to the square of root of beds. The appropriate $V_1$ in this case would be 2133663146 And to meet the target CV, we only need to sample 1 hospitals.
 
