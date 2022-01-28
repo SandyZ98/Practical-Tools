@@ -4,15 +4,15 @@ author: "Group Sarndal: Stacey Frank & Chendi Zhao"
 date: "1/27/2022"
 output: html_document
 ---
-## Packages 
-```{r, echo=FALSE}
+
+```{r, message=FALSE, warning=FALSE}
 library(PracTools)
 library(tidyverse)
 library(janitor)
 library(knitr)
 ```
 
-##3.7
+## 3.7
 
 a)
 ```{r}
@@ -21,17 +21,37 @@ nPropMoe(moe.sw=1, e=.005, alpha=0.05, pU=0.02)
 ```
 The sample size required to estimate a rare characteristic with a prevalence of 2% with a MOE of .005 will be 3012. 
 
+
 b) You can assess the probability of collecting no cases with the rare trait for a variety of same sizes and prevalence estimates by solving the following inequality: $n\geq\frac{log(\alpha)}{log(1-p_u)}$. This would allow you to determine the prevalence level you could reasonably expect to detect at a specified confidence level at various sample sizes. 
 
-##3.8
+## 3.8
 
 b)
-```{r}
-
+```{r, results='hide'}
+data(smho98)
+dim(smho98)
+head(smho98)
 ```
 
 
+```{r}
+#The unit relvariance is the population relvariance, which is the square of the population coefficient of variation 
+#using formulas on pg 26; should N or N-1 be the denominator of S^2_U? Currently am using N-1
 
+attach(smho98)
+EXPTOTAL.RV <- var(EXPTOTAL)/mean(EXPTOTAL)
+BEDS.RV <- var(BEDS)/mean(BEDS)
+SEENCNT.RV <- var(SEENCNT)/mean(SEENCNT)
+EOYCNT.RV <- var(EOYCNT)/mean(EOYCNT)
+Y_IP.RV <- var(Y_IP)/mean(Y_IP)
+
+Relvars <- cbind(EXPTOTAL.RV, BEDS.RV, SEENCNT.RV, EOYCNT.RV, Y_IP.RV)
+print(Relvars)
+
+```
+The unit relvariances for each of the five variables are listed above.
+
+## 3.12
 ```{r}
 #See example 3.16 in VDK P66-67
 #x<-c(70,160,227,235,275,300,310,378,400,461,472,474,498,562,584,635,670,712,760,816)
