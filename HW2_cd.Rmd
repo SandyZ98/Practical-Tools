@@ -63,3 +63,14 @@ ceiling(N_new)
 ```
 If we select a new sample with probabilities proportional to the square of root of beds. The appropriate $V_1$ in this case would be 37938877108 And to meet the target CV, we only need to sample 17 hospitals.
 
+
+Q1
+ceiling(nPropMoe(moe.sw=1,e=0.005,alpha=0.05,pU=0.02))
+Q2
+data("smho98")
+y1<-smho98$EXPTOTAL
+y_S1<-var(smho98$EXPTOTAL)
+y_bar1<-mean(smho98$EXPTOTAL)
+cv1<-y_S1/(y_bar1)^2
+cv1
+
