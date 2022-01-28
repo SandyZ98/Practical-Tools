@@ -59,6 +59,7 @@ The unit relvariances for each of the five variables are listed above.
 #sample<-cbind.data.frame(x,y)
 #n=20
 
+data(hospital)
 sample<-read.table("Hospital_50.txt",header = T,sep = ",")
 sample<-rename(sample,x=BEDS,y=DISCHARGE)
 
