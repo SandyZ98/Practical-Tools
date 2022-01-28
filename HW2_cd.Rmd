@@ -1,6 +1,6 @@
 ---
 title: "HW2_cd"
-author: "Stacey & Chendi"
+author: "Group Sarndal: Stacey Frank & Chendi Zhao"
 date: "1/27/2022"
 output: html_document
 ---
@@ -9,16 +9,37 @@ output: html_document
 library(PracTools)
 library(tidyverse)
 library(janitor)
+library(knitr)
 ```
 
+##3.7
+
+a)
 ```{r}
-See example 3.16 in VDK P66-67
+nPropMoe(moe.sw=1, e=.005, alpha=0.05, pU=0.02)
+
+```
+The sample size required to estimate a rare characteristic with a prevalence of 2% with a MOE of .005 will be 3012. 
+
+b) You can assess the probability of collecting no cases with the rare trait for a variety of same sizes and prevalence estimates by solving the following inequality: $n\geq\frac{log(\alpha)}{log(1-p_u)}$. This would allow you to determine the prevalence level you could reasonably expect to detect at a specified confidence level at various sample sizes. 
+
+##3.8
+
+b)
+```{r}
+
+```
+
+
+
+```{r}
+#See example 3.16 in VDK P66-67
 #x<-c(70,160,227,235,275,300,310,378,400,461,472,474,498,562,584,635,670,712,760,816)
 #y<-c(244,402,732,925,632,557,1226,896,2190,1948,1239,1258,1657,2116,1326,1606,1707,2089,1283,1239)
 #sample<-cbind.data.frame(x,y)
 #n=20
 
-sample<-read.table("C:/Users/cd_zh/Desktop/745/Hospital_50.txt",header = T,sep = ",")
+sample<-read.table("Hospital_50.txt",header = T,sep = ",")
 sample<-rename(sample,x=BEDS,y=DISCHARGE)
 
 N=393
