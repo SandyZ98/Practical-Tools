@@ -51,13 +51,16 @@ print(Relvars)
 The unit relvariances for each of the five variables are listed above.
 
 ## 3.12
-```{r}
+```{r, include=FALSE}
 #See example 3.16 in VDK P66-67
 #x<-c(70,160,227,235,275,300,310,378,400,461,472,474,498,562,584,635,670,712,760,816)
 #y<-c(244,402,732,925,632,557,1226,896,2190,1948,1239,1258,1657,2116,1326,1606,1707,2089,1283,1239)
 #sample<-cbind.data.frame(x,y)
 #n=20
+```
 
+a)
+```{r}
 data(hospital)
 sample<-read.table("Hospital_50.txt",header = T,sep = ",")
 sample<-rename(sample,x=BEDS,y=DISCHARGE)
@@ -69,34 +72,40 @@ n_bed=sum(sample$x)
 #a
 p_i<-sample$x/N_bed
 w_i=1/(p_i*n)
-#verify
-sum(w_i*sample$x)
 round(w_i,digit=2)
 ```
-#a
-If the design weights are correct, the sum of number of beds in each sampled hosptital*weight should be the total number of beds in the population(107956)
-```{r}
-#b
-y_bar_bed=round(sum(sample$y/(p_i))/(N*n),2)
-y_bar_bed
-```
-The mean of discharges based on the sample using the $\pi$-estimator is  742.43
-.
+The design weights for the 50 sample hospitals are shown above. 
 
 ```{r}
-#c
+#verify that weights were calculated correctly
+sum(w_i*sample$x)
+```
+If the design weights are correct, the sum of number of beds in each sampled hospital*weight should be equal to the total number of beds in the population (107956). This is shown above.
+
+
+b)
+```{r}
+y_bar_bed=round(sum(sample$y/(p_i))/(N*n),2)
+y_bar_bed
+
+```
+The mean of discharges based on the sample using the $\pi$-estimator is 742.43.
+
+
+c)
+```{r}
+##ppswr variance: eq. 3.41 for V_1, plugged into eq. 3.32
+
 V_hat_1_c=n^2*sum((w_i*sample$y-mean(w_i*sample$y))^2)/(n-1)
 V_hat_1_c=sum((sample$y/p_i-mean(sample$y/p_i))^2)/(n-1)
 
 V_y_bar_wr=V_hat_1_c/(N^2*n)
 V_y_bar_wr
 ```
-The estimated variance of the mean of discharges is 593.062
+The estimated variance of the mean of discharges is 593.062. This is a fairly small variance, which indicates that the PPS sampling is in this instance an efficient sampling method, and it is producing a small variance in the estimate. 
 
-Observation:???? The variance is small???
-
+e)
 ```{r}
-#e
 V_hat_1_e=sum(sqrt(hospital$x))*sum(((sample$y)^2/(sqrt(sample$x)*p_i)))/n-(sum(sample$y/p_i)/n)^2+V_y_bar_wr*N^2
 V_hat_1_e
 N_new=V_hat_1_e/((N*mean(hospital$y)*0.15)^2)
@@ -104,14 +113,4 @@ ceiling(N_new)
 ```
 If we select a new sample with probabilities proportional to the square of root of beds. The appropriate $V_1$ in this case would be 37938877108 And to meet the target CV, we only need to sample 17 hospitals.
 
-
-Q1
-ceiling(nPropMoe(moe.sw=1,e=0.005,alpha=0.05,pU=0.02))
-Q2
-data("smho98")
-y1<-smho98$EXPTOTAL
-y_S1<-var(smho98$EXPTOTAL)
-y_bar1<-mean(smho98$EXPTOTAL)
-cv1<-y_S1/(y_bar1)^2
-cv1
 

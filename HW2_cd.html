@@ -192,33 +192,28 @@ library(knitr)</code></pre>
 <ol start="2" style="list-style-type: lower-alpha">
 <li></li>
 </ol>
-<pre class="r"><code>data(smho98)
+<pre class="r"><code>data(&quot;smho98&quot;)
 dim(smho98)
 head(smho98)</code></pre>
-<pre class="r"><code>#The unit relvariance is the population relvariance, which is the square of the population coefficient of variation 
-#using formulas on pg 26; should N or N-1 be the denominator of S^2_U? Currently am using N-1
+<pre class="r"><code>#The unit relvariance is the population relvariance, which is the square of the population coefficient of variation; formula on pg 26 
 
 attach(smho98)
-EXPTOTAL.RV &lt;- var(EXPTOTAL)/mean(EXPTOTAL)
-BEDS.RV &lt;- var(BEDS)/mean(BEDS)
-SEENCNT.RV &lt;- var(SEENCNT)/mean(SEENCNT)
-EOYCNT.RV &lt;- var(EOYCNT)/mean(EOYCNT)
-Y_IP.RV &lt;- var(Y_IP)/mean(Y_IP)
+EXPTOTAL.RV &lt;- var(EXPTOTAL)/(mean(EXPTOTAL)^2)
+BEDS.RV &lt;- var(BEDS)/(mean(BEDS)^2)
+SEENCNT.RV &lt;- var(SEENCNT)/(mean(SEENCNT)^2)
+EOYCNT.RV &lt;- var(EOYCNT)/(mean(EOYCNT)^2)
+Y_IP.RV &lt;- var(Y_IP)/(mean(Y_IP)^2)
 
 Relvars &lt;- cbind(EXPTOTAL.RV, BEDS.RV, SEENCNT.RV, EOYCNT.RV, Y_IP.RV)
 print(Relvars)</code></pre>
 <pre><code>##      EXPTOTAL.RV  BEDS.RV SEENCNT.RV EOYCNT.RV  Y_IP.RV
-## [1,]    50526436 305.0694   15985.95  12278.24 37423.68</code></pre>
-<p>The unit relvariances for each of the five variables is listed above.</p>
+## [1,]     4.33176 3.636379   7.073709  13.16396 4.940663</code></pre>
+<p>The unit relvariances for each of the five variables are listed above.</p>
 </div>
 <div id="section-2" class="section level2">
 <h2>3.12</h2>
-<pre class="r"><code>#See example 3.16 in VDK P66-67
-#x&lt;-c(70,160,227,235,275,300,310,378,400,461,472,474,498,562,584,635,670,712,760,816)
-#y&lt;-c(244,402,732,925,632,557,1226,896,2190,1948,1239,1258,1657,2116,1326,1606,1707,2089,1283,1239)
-#sample&lt;-cbind.data.frame(x,y)
-#n=20
-
+<p>#a</p>
+<pre class="r"><code>data(hospital)
 sample&lt;-read.table(&quot;Hospital_50.txt&quot;,header = T,sep = &quot;,&quot;)
 sample&lt;-rename(sample,x=BEDS,y=DISCHARGE)
 
@@ -229,17 +224,18 @@ n_bed=sum(sample$x)
 #a
 p_i&lt;-sample$x/N_bed
 w_i=1/(p_i*n)
-#verify
-sum(w_i*sample$x)</code></pre>
-<pre><code>## [1] 107956</code></pre>
-<pre class="r"><code>round(w_i,digit=2)</code></pre>
+round(w_i,digit=2)</code></pre>
 <pre><code>##  [1] 4.39 4.38 4.35 4.34 4.32 4.28 4.24 4.23 4.18 4.12 4.12 4.07 4.01 4.00 3.99
 ## [16] 3.98 3.93 3.92 3.88 3.87 3.84 3.81 3.77 3.74 3.70 3.70 3.65 3.65 3.56 3.56
 ## [31] 3.52 3.45 3.40 3.32 3.31 3.28 3.16 3.03 3.03 2.79 2.75 2.60 2.60 2.58 2.52
 ## [46] 2.39 2.35 2.31 2.30 2.19</code></pre>
-<p>#a If the design weights are correct, the sum of number of beds in each sampled hosptital*weight should be the total number of beds in the population(107956)</p>
-<pre class="r"><code>#b
-y_bar_bed=round(sum(sample$y/(p_i))/(N*n),2)
+<p>The design weights for the 50 sample hospitals are shown above.</p>
+<pre class="r"><code>#verify that weights were calculated correctly
+sum(w_i*sample$x)</code></pre>
+<pre><code>## [1] 107956</code></pre>
+<p>If the design weights are correct, the sum of number of beds in each sampled hospital*weight should be equal to the total number of beds in the population (107956). This is shown above.</p>
+<p>#b</p>
+<pre class="r"><code>y_bar_bed=round(sum(sample$y/(p_i))/(N*n),2)
 y_bar_bed</code></pre>
 <pre><code>## [1] 742.43</code></pre>
 <p>The mean of discharges based on the sample using the <span class="math inline">\(\pi\)</span>-estimator is 742.43 .</p>
@@ -254,9 +250,11 @@ V_y_bar_wr</code></pre>
 <p>Observation:???? The variance is small???</p>
 <pre class="r"><code>#e
 V_hat_1_e=sum(sqrt(hospital$x))*sum(((sample$y)^2/(sqrt(sample$x)*p_i)))/n-(sum(sample$y/p_i)/n)^2+V_y_bar_wr*N^2
-V_hat_1_e
-N_new=V_hat_1_e/((N*mean(hospital$y)*0.15)^2)
+V_hat_1_e</code></pre>
+<pre><code>## [1] 37938877108</code></pre>
+<pre class="r"><code>N_new=V_hat_1_e/((N*mean(hospital$y)*0.15)^2)
 ceiling(N_new)</code></pre>
+<pre><code>## [1] 17</code></pre>
 <p>If we select a new sample with probabilities proportional to the square of root of beds. The appropriate <span class="math inline">\(V_1\)</span> in this case would be 37938877108 And to meet the target CV, we only need to sample 17 hospitals.</p>
 <p>Q1 ceiling(nPropMoe(moe.sw=1,e=0.005,alpha=0.05,pU=0.02)) Q2 data(“smho98”) y1&lt;-smho98<span class="math inline">\(EXPTOTAL y_S1&lt;-var(smho98\)</span>EXPTOTAL) y_bar1&lt;-mean(smho98$EXPTOTAL) cv1&lt;-y_S1/(y_bar1)^2 cv1</p>
 </div>
