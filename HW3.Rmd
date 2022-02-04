@@ -30,7 +30,7 @@ power.t.test(sd=sd,
 ##A
 
 $H_0$:$\mu=\$7000$ 
-$H_A$:$\mu>\$7000$ 
+$H_A$:$\mu<\$7000$ 
 at $\alpha$=0.05 level
 
 ##B
