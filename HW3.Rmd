@@ -2,7 +2,9 @@
 title: "SURVMETH 745 HW3"
 author: "Stacey Frank & Chendi Zhao"
 date: "2/3/2022"
-output: html_document
+output:
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -97,7 +99,7 @@ return(c(t=tstat,p=p,sig=sig))
 }
 t_power_1<-grid_search(t_fun_1,
 params=list(sampsize=c(51,70),
-            mean=seq(50,90,10),
+            mean=seq(50,100,10),
 delta=5),
 n.iter=10000,output='data.frame')
 
@@ -120,7 +122,7 @@ return(c(t=tstat,p=p,sig=sig))
 }
 t_power_2<-grid_search(t_fun_2,
 params=list(sampsize=c(199,275),
-            mean=seq(50,90,10),
+            mean=seq(50,100,10),
 delta=5),
 n.iter=10000,output='data.frame')
 
@@ -134,7 +136,7 @@ sig.level = 0.05,
 type = c("two.sample"),
 alternative = c("one.sided"))
 ```
-We observed that the mean can affect the value of power, therefore we set the mean weight from 50kg-100kg in the simulation function. The results indicate that, for sample size equals to 51,70,199,275, the powers are 0.70,0.83,0.70,0.83, which are slightly smaller than the corresponding result obtained from an appropriate power function.  Therefore, without knowing the value of mean weight, we are not always able to detect a difference in mean weight of 5kg between males and females with the sample size calculated above.
+We observed that the mean can affect the value of power, therefore we set the mean weight from 50kg-100kg in the simulation function. The results indicate that, for sample size equals to 51,70,199,275, the powers are 0.70,0.83,0.70,0.83, which are slightly smaller than the corresponding result obtained from an appropriate power function(0.81,0.90,0.80,0.90).  Therefore, without knowing the value of mean weight, we are not always able to detect a difference in mean weight of 5kg between males and females with the sample size calculated above.
 
 # VDK Exercise 4.11.
 
