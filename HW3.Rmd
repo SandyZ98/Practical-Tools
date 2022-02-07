@@ -164,22 +164,24 @@ If you assume that only overlapping cases between January and July will be used,
 
 ##Part A variance of estimated mean difference
 
-cov_xy <- .76*(.55*.55)
+cov_xy <- .76*(55*55)
   
 var_diff_a <- (1/499)*((55^2)+(1*(55^2))-(2*.6*1*(cov_xy)))
 
+diff_a_num <- ((55^2)+(1*(55^2))-(2*.6*1*(cov_xy)))
 
 ##Part B variance of estimated mean difference
 
 var_diff_b <- ((2*(55^2))*(1-.76))/220
 
-var_ratio <- var_diff_a/var_diff_b
+diff_b_num <- ((2*(55^2))*(1-.76))
+
 
 n_ratio <- 499/220
+n_ratio
 
-var_ratio;n_ratio
 ```
-The variance of the estimated mean difference in part a is 12.12. The variance of the estimated mean difference in part b is 6.6. The ratio of the two sample sizes (499/220) is 2.25, which is close to the ratio of the two variances, which is 1.8. As the variance of the differences increases, so does the needed sample size to detect that difference, and they increase at about the same rate. 
+The variance of the estimated mean difference in part A is 6.6 and the variance of the estimated mean difference in part b is also 6.6. The ratio of the two sample sizes (499/220) is 2.27, which is the same as the ratio of the two variances over their respective sample sizes, or 3291/n_a for part A and 1452/n_b for part B. The larger sample size is needed in part A is needed to counteract the covariance of x and y in that formula, while a smaller sample is needed in part B because there is no covariance to account for. 
 
 ### D)
 
