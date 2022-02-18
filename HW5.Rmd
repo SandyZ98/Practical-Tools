@@ -15,24 +15,98 @@ library(tidyverse)
 # Exercise 9.1
 
 ```{r}
-
 data("MDarea.pop")
 summary(MDarea.pop)
 head(MDarea.pop)
+```
 
+
+```{r}
+###Tract as PSU
 
 MDarea.pop %>%
-  group_by(PSU) %>%
-  summarise(total = n())
+  group_by(TRACT) %>%
+  summarise(N = n(), y = sum(y1)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Tract Popluation") + ylab("Tract Total: y1")
+
+MDarea.pop %>%
+  group_by(TRACT) %>%
+  summarise(N = n(), y = sum(y2)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Tract Popluation") + ylab("Tract Total: y2")
+
+MDarea.pop %>%
+  group_by(TRACT) %>%
+  summarise(N = n(), y = sum(y3)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Tract Popluation") + ylab("Tract Total: y3")
+
+MDarea.pop %>%
+  group_by(TRACT) %>%
+  summarise(N = n(), y = sum(ins.cov)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Tract Popluation") + ylab("Tract Total: ins.cov")
+
+MDarea.pop %>%
+  group_by(TRACT) %>%
+  summarise(N = n(), y = sum(hosp.stay)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Tract Popluation") + ylab("Tract Total: hosp.stay")
 
 ```
 
 
-Plot....
+```{r}
 
+###Block group as PSU
 
+MDarea.pop %>%
+  group_by(10*TRACT + BLKGROUP) %>%
+  summarise(N = n(), y = sum(y1)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Block Group Popluation") + ylab("Block Group Total: y1")
 
-Discuss whether simple random sampling of PSUs or pps sampling will be more efficient. Explain your reasoning.
+MDarea.pop %>%
+  group_by(10*TRACT + BLKGROUP) %>%
+  summarise(N = n(), y = sum(y2)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Block Group Popluation") + ylab("Block Group Total: y2")
+
+MDarea.pop %>%
+  group_by(10*TRACT + BLKGROUP) %>%
+  summarise(N = n(), y = sum(y3)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Block Group Popluation") + ylab("Block Group Total: y3")
+
+MDarea.pop %>%
+  group_by(10*TRACT + BLKGROUP) %>%
+  summarise(N = n(), y = sum(ins.cov)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Block Group Popluation") + ylab("Block Group Total: ins.cov")
+
+MDarea.pop %>%
+  group_by(10*TRACT + BLKGROUP) %>%
+  summarise(N = n(), y = sum(hosp.stay)) %>%
+ggplot(aes(x=N, y=y)) +
+  geom_point(size=2) +
+  xlab("Block Group Popluation") + ylab("Block Group Total: hosp.stay")
+
+```
+
+These plots show that there is a strong linear relationship between the population count for the PSU (be it tract or block group) and the cluster total for each of the five variables in the Maryland dataset. As the population size increases, the cluster total for each of the five variables increases as well. This creates large between-cluster variation and makes the B^2 value very large. A good way to counteract this is to have clusters that are roughly equal in size, but absent that solution, it is better to do a PPS selection of clusters, rather than an SRS. This gives larger clusters a larger probability of selection and thereby decreases the between-cluster variation that will be found in the resulting sample.
+
+You can see the decrease in B^2 values below when comparing an SRS selection of tracts and a PPS selection of tracts. The B^2 value is lower in the PPS setup for all five variables. 
+
 
 # One example If TRACT is defined as PSU
 ##Assume an srs/srs sampling design
