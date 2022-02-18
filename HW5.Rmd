@@ -27,3 +27,43 @@ MDarea.pop %>%
 
 ```
 
+
+Plot....
+
+
+
+Discuss whether simple random sampling of PSUs or pps sampling will be more efficient. Explain your reasoning.
+
+# One example If TRACT is defined as PSU
+##Assume an srs/srs sampling design
+```{r}
+
+MDarea.pop%>%
+group_by(TRACT)%>%
+summarise(N=n())%>%
+summary(N)
+
+round(rbind(y1=BW2stageSRS(MDarea.pop$y1, psuID=MDarea.pop$TRACT),
+y2=BW2stageSRS(MDarea.pop$y2, psuID=MDarea.pop$TRACT),
+y3=BW2stageSRS(MDarea.pop$y3, psuID=MDarea.pop$TRACT),
+ins.cov=BW2stageSRS(MDarea.pop$ins.cov, psuID=MDarea.pop$TRACT),
+hosp.stay=BW2stageSRS(MDarea.pop$hosp.stay, psuID=MDarea.pop$TRACT)),
+5)
+```
+
+##Assume a ppswr/srs sampling design
+
+```{r}
+pp.TRACT <- table(MDarea.pop$TRACT) / nrow(MDarea.pop)
+round(rbind(y1=BW2stagePPS(MDarea.pop$y1, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+y2=BW2stagePPS(MDarea.pop$y2, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+y3=BW2stagePPS(MDarea.pop$y3, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+ins.cov=BW2stagePPS(MDarea.pop$ins.cov, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+hosp.stay=BW2stagePPS(MDarea.pop$hosp.stay, pp=pp.TRACT, psuID=MDarea.pop$TRACT)),
+5)
+```
+
+ppswr/srs would be more efficient
+
+- the second method has a smaller delta in each PSU, indicating a homogenity within stratum--Good sign
+-the second method also does a good work in approximation unit relvariance = B^2+W^2
