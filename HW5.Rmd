@@ -1,0 +1,29 @@
+---
+title: "SURVMETH 745 HW5"
+author: "Stacey Frank & Chendi Zhao"
+date: "2/3/2022"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+library(PracTools)
+library(tidyverse)
+```
+
+# Exercise 9.1
+
+```{r}
+
+data("MDarea.pop")
+summary(MDarea.pop)
+head(MDarea.pop)
+
+
+MDarea.pop %>%
+  group_by(PSU) %>%
+  summarise(total = n())
+
+```
+
