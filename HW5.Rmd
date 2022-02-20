@@ -12,6 +12,7 @@ output:
 ```{r setup, include=FALSE}
 library(PracTools)
 library(tidyverse)
+library(knitr)
 ```
 
 # Exercise 9.1
