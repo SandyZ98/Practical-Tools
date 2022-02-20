@@ -3,8 +3,10 @@ title: "SURVMETH 745 HW5"
 author: "Stacey Frank & Chendi Zhao"
 date: "2/3/2022"
 output:
-  word_document: default
+  html_document:
+    df_print: paged
   pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,11 +17,14 @@ library(tidyverse)
 # Exercise 9.1
 
 ```{r}
+
 data("MDarea.pop")
+dim(MDarea.pop)
+table(MDarea.pop$TRACT)
 summary(MDarea.pop)
 head(MDarea.pop)
-```
 
+```
 
 ```{r}
 ###Tract as PSU
@@ -27,35 +32,35 @@ head(MDarea.pop)
 MDarea.pop %>%
   group_by(TRACT) %>%
   summarise(N = n(), y = sum(y1)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Tract Popluation") + ylab("Tract Total: y1")
 
 MDarea.pop %>%
   group_by(TRACT) %>%
   summarise(N = n(), y = sum(y2)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Tract Popluation") + ylab("Tract Total: y2")
 
 MDarea.pop %>%
   group_by(TRACT) %>%
   summarise(N = n(), y = sum(y3)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Tract Popluation") + ylab("Tract Total: y3")
 
 MDarea.pop %>%
   group_by(TRACT) %>%
   summarise(N = n(), y = sum(ins.cov)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Tract Popluation") + ylab("Tract Total: ins.cov")
 
 MDarea.pop %>%
   group_by(TRACT) %>%
   summarise(N = n(), y = sum(hosp.stay)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Tract Popluation") + ylab("Tract Total: hosp.stay")
 
@@ -69,35 +74,35 @@ ggplot(aes(x=N, y=y)) +
 MDarea.pop %>%
   group_by(10*TRACT + BLKGROUP) %>%
   summarise(N = n(), y = sum(y1)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Block Group Popluation") + ylab("Block Group Total: y1")
 
 MDarea.pop %>%
   group_by(10*TRACT + BLKGROUP) %>%
   summarise(N = n(), y = sum(y2)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Block Group Popluation") + ylab("Block Group Total: y2")
 
 MDarea.pop %>%
   group_by(10*TRACT + BLKGROUP) %>%
   summarise(N = n(), y = sum(y3)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Block Group Popluation") + ylab("Block Group Total: y3")
 
 MDarea.pop %>%
   group_by(10*TRACT + BLKGROUP) %>%
   summarise(N = n(), y = sum(ins.cov)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Block Group Popluation") + ylab("Block Group Total: ins.cov")
 
 MDarea.pop %>%
   group_by(10*TRACT + BLKGROUP) %>%
   summarise(N = n(), y = sum(hosp.stay)) %>%
-ggplot(aes(x=N, y=y)) +
+  ggplot(aes(x=N, y=y)) +
   geom_point(size=2) +
   xlab("Block Group Popluation") + ylab("Block Group Total: hosp.stay")
 
@@ -108,36 +113,70 @@ These plots show that there is a strong linear relationship between the populati
 You can see the decrease in B^2 values below when comparing an SRS selection of tracts and a PPS selection of tracts. The B^2 value is lower in the PPS setup for all five variables. 
 
 
-# One example If TRACT is defined as PSU
+#If TRACT is defined as PSU
 ##Assume an srs/srs sampling design
 ```{r}
 
 MDarea.pop%>%
-group_by(TRACT)%>%
-summarise(N=n())%>%
-summary(N)
+  group_by(TRACT)%>%
+  summarise(N=n())%>%
+  summary(N)
 
-round(rbind(y1=BW2stageSRS(MDarea.pop$y1, psuID=MDarea.pop$TRACT),
-y2=BW2stageSRS(MDarea.pop$y2, psuID=MDarea.pop$TRACT),
-y3=BW2stageSRS(MDarea.pop$y3, psuID=MDarea.pop$TRACT),
-ins.cov=BW2stageSRS(MDarea.pop$ins.cov, psuID=MDarea.pop$TRACT),
-hosp.stay=BW2stageSRS(MDarea.pop$hosp.stay, psuID=MDarea.pop$TRACT)),
-5)
+TRACT1<-round(rbind(y1=BW2stageSRS(MDarea.pop$y1, psuID=MDarea.pop$TRACT),
+            y2=BW2stageSRS(MDarea.pop$y2, psuID=MDarea.pop$TRACT),
+            y3=BW2stageSRS(MDarea.pop$y3, psuID=MDarea.pop$TRACT),
+            ins.cov=BW2stageSRS(MDarea.pop$ins.cov, psuID=MDarea.pop$TRACT),
+            hosp.stay=BW2stageSRS(MDarea.pop$hosp.stay, psuID=MDarea.pop$TRACT)),
+      5)
 ```
 
 ##Assume a ppswr/srs sampling design
 
 ```{r}
 pp.TRACT <- table(MDarea.pop$TRACT) / nrow(MDarea.pop)
-round(rbind(y1=BW2stagePPS(MDarea.pop$y1, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
-y2=BW2stagePPS(MDarea.pop$y2, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
-y3=BW2stagePPS(MDarea.pop$y3, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
-ins.cov=BW2stagePPS(MDarea.pop$ins.cov, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
-hosp.stay=BW2stagePPS(MDarea.pop$hosp.stay, pp=pp.TRACT, psuID=MDarea.pop$TRACT)),
-5)
+TRACT2<-round(rbind(y1=BW2stagePPS(MDarea.pop$y1, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+            y2=BW2stagePPS(MDarea.pop$y2, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+            y3=BW2stagePPS(MDarea.pop$y3, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+            ins.cov=BW2stagePPS(MDarea.pop$ins.cov, pp=pp.TRACT, psuID=MDarea.pop$TRACT),
+            hosp.stay=BW2stagePPS(MDarea.pop$hosp.stay, pp=pp.TRACT, psuID=MDarea.pop$TRACT)),
+      5)
 ```
 
-ppswr/srs would be more efficient
+```{r}
+kable(list(TRACT1,TRACT2),caption = "TRACT as PSU--srs/srs&ppswr/srs")
+```
+#If TRACT is defined as PSU
+##Assume an srs/srs sampling design
+```{r}
+MDarea.pop$BP<-10*MDarea.pop$TRACT + MDarea.pop$BLKGROUP
+MDarea.pop%>%
+  group_by(BP)%>%
+  summarise(N=n())%>%
+  summary(N)
 
-- the second method has a smaller delta in each PSU, indicating a homogenity within stratum--Good sign
--the second method also does a good work in approximation unit relvariance = B^2+W^2
+BP1<-round(rbind(y1=BW2stageSRS(MDarea.pop$y1, psuID=MDarea.pop$BP),
+            y2=BW2stageSRS(MDarea.pop$y2, psuID=MDarea.pop$BP),
+            y3=BW2stageSRS(MDarea.pop$y3, psuID=MDarea.pop$BP),
+            ins.cov=BW2stageSRS(MDarea.pop$ins.cov, psuID=MDarea.pop$BP),
+            hosp.stay=BW2stageSRS(MDarea.pop$hosp.stay, psuID=MDarea.pop$BP)),
+      5)
+```
+
+##Assume a ppswr/srs sampling design
+
+```{r}
+pp.BP <- table(MDarea.pop$BP) / nrow(MDarea.pop)
+BP2<-round(rbind(y1=BW2stagePPS(MDarea.pop$y1, pp=pp.BP, psuID=MDarea.pop$BP),
+            y2=BW2stagePPS(MDarea.pop$y2, pp=pp.BP, psuID=MDarea.pop$BP),
+            y3=BW2stagePPS(MDarea.pop$y3, pp=pp.BP, psuID=MDarea.pop$BP),
+            ins.cov=BW2stagePPS(MDarea.pop$ins.cov, pp=pp.BP, psuID=MDarea.pop$BP),
+            hosp.stay=BW2stagePPS(MDarea.pop$hosp.stay, pp=pp.BP, psuID=MDarea.pop$BP)),
+      5)
+```
+
+```{r}
+kable(list(BP1,BP2),caption = "BLOCKGROUP as PSU--srs/srs&ppswr/srs")
+```
+
+If we set TRACT or BLOCKGROUP as PSU,the $B^2$ for all five variables are smaller under a ppswr design than an srs design.The approximation of $S^2/U^2$ (unit variance) = $B^2+W^2$ works better under a ppswr design. That's also can be concluded from that $k$ is close to 1 for all variables under a ppswr design, indicating a homogeneity within each cluster.
+Therefore, we think that pps sampling would be more efficient
