@@ -1,0 +1,63 @@
+---
+title: "SURVMETH 745 HW6"
+author: "Stacey Frank & Chendi Zhao"
+date: "2/26/2022"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(PracTools)
+library(tidyverse)
+```
+
+#Exercise 9.7
+##Data
+```{r}
+data("MDarea.pop")
+table(MDarea.pop$Hispanic,exclude = NULL)
+table(MDarea.pop$Gender,exclude = NULL)
+summary(MDarea.pop$Age)
+```
+
+## a (three-stage(all srswr))
+```{r}
+M <- length(unique(MDarea.pop$TRACT))
+pp.trt1 <- rep(1/M,M)
+MDarea.pop$trtBG <- 10*MDarea.pop$TRACT + MDarea.pop$BLKGROUP
+res1<-round(rbind(
+  y1=BW3stagePPS(X=MDarea.pop$Hispanic, pp=pp.trt1,
+psuID=MDarea.pop$TRACT, ssuID=MDarea.pop$trtBG),
+y2=BW3stagePPS(X=MDarea.pop$Gender, pp=pp.trt1,
+psuID=MDarea.pop$TRACT, ssuID=MDarea.pop$trtBG),
+y3=BW3stagePPS(X=MDarea.pop$Age, pp=pp.trt1,
+psuID=MDarea.pop$TRACT, ssuID=MDarea.pop$trtBG)),digits = 3)
+rownames(res1)<-c("Hispanic","Gender","Age")
+res1
+
+```
+
+## b (three-stage(ppswr/srs/srs))
+```{r}
+
+pp.trt2 <- table(MDarea.pop$TRACT) / nrow(MDarea.pop) 
+MDarea.pop$trtBG <- 10*MDarea.pop$TRACT + MDarea.pop$BLKGROUP
+res2<-round(rbind(
+  y1=BW3stagePPS(X=MDarea.pop$Hispanic, pp=pp.trt2,
+psuID=MDarea.pop$TRACT, ssuID=MDarea.pop$trtBG),
+y2=BW3stagePPS(X=MDarea.pop$Gender, pp=pp.trt2,
+psuID=MDarea.pop$TRACT, ssuID=MDarea.pop$trtBG),
+y3=BW3stagePPS(X=MDarea.pop$Age, pp=pp.trt2,
+psuID=MDarea.pop$TRACT, ssuID=MDarea.pop$trtBG)),digits = 3)
+
+rownames(res2)<-c("Hispanic","Gender","Age")
+res2
+```
+
+
+##c
+For all three variables,when swithcing to a ppswr/srs/srs design to an srs/srs/srs design.$W^2$,$w2^2$,and $W3^2$ decreased slightly and $\delta2^2$ increased slgihtly. However, the value of $B^2$ and $\delta1^2$ became much smaller than before. The $\delta1^2$ is a measure of the homogeneity among the PSU totals. Decrease in this term indicates that the variation
+within PSUs is much larger than the variation among PSU totals under the ppswr/srs/srs design. This is most obvious in the varible "Hispanis","Gender".
