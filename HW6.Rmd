@@ -13,9 +13,44 @@ output:
 library(PracTools)
 library(tidyverse)
 ```
+# Exercise 9.5
+```{r}
+#total budget: 500,000
+#cost: c(1000, 200, 120)
+#delta1: c(.001, .01, .05)
+#delta2: c(.05, .10, .25)
+#pi estimator is used so we're doing srs/srs/srs
 
-#Exercise 9.7
-##Data
+#delta1=.001
+Optimum1<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .001, delta2= .05, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+Optimum2<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .001, delta2= .10, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+Optimum3<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .001, delta2= .25, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+
+#delta1=.01
+Optimum4<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .01, delta2= .05, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+Optimum5<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .01, delta2= .10, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+Optimum6<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .01, delta2= .25, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+
+#delta1=.05
+Optimum7<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .05, delta2= .05, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+Optimum8<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .05, delta2= .10, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+Optimum9<- clusOpt3(unit.cost=c(1000, 200, 120), delta1= .05, delta2= .25, unit.rv=2, k1=1, k2=1, tot.cost=500000, cal.sw=1)
+
+delta1<- c(.001,.001,.001, .01,.01,.01, .05, .05, .05)
+delta2<- c(.05, .10, .25,.05, .10, .25,.05, .10, .25)
+m.opt <- c(Optimum1[[10]], Optimum2[[10]], Optimum3[[10]],Optimum4[[10]], Optimum5[[10]], Optimum6[[10]],Optimum7[[10]], Optimum8[[10]], Optimum9[[10]])
+n.opt <- c(Optimum1[[11]], Optimum2[[11]], Optimum3[[11]],Optimum4[[11]], Optimum5[[11]], Optimum6[[11]],Optimum7[[11]], Optimum8[[11]], Optimum9[[11]])
+q.opt <- c(Optimum1[[12]], Optimum2[[12]], Optimum3[[12]],Optimum4[[12]], Optimum5[[12]], Optimum6[[12]],Optimum7[[12]], Optimum8[[12]], Optimum9[[12]])
+CV <-  c(Optimum1[[13]], Optimum2[[13]], Optimum3[[13]],Optimum4[[13]], Optimum5[[13]], Optimum6[[13]],Optimum7[[13]], Optimum8[[13]], Optimum9[[13]])
+
+design.options <- data.frame(delta1, delta2, m.opt, n.opt, q.opt, CV)
+
+design.options
+```
+The m.opt, n.opt, q.opt, and CV calues for each of the nine combinations of delta1 and delta2 are displayed above. CV is smallest when delta1 and delta2 values are small. Smaller delta1 values are associated with smaller m.opt values, and smaller delta2 values are associated with smaller n.opt values. q.opt gets smaller as delta2 increases (within a given delta1 value).
+
+# Exercise 9.7
+## Data
 ```{r}
 data("MDarea.pop")
 table(MDarea.pop$Hispanic,exclude = NULL)
@@ -58,6 +93,6 @@ res2
 ```
 
 
-##c
+## c
 For all three variables,when swithcing to a ppswr/srs/srs design to an srs/srs/srs design.$W^2$,$w2^2$,and $W3^2$ decreased slightly and $\delta2^2$ increased slgihtly. However, the value of $B^2$ and $\delta1^2$ became much smaller than before. The $\delta1^2$ is a measure of the homogeneity among the PSU totals. Decrease in this term indicates that the variation
 within PSUs is much larger than the variation among PSU totals under the ppswr/srs/srs design. This is most obvious in the varible "Hispanis","Gender".
