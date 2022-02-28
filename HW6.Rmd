@@ -94,5 +94,4 @@ res2
 
 
 ## c
-For all three variables,when swithcing to a ppswr/srs/srs design to an srs/srs/srs design.$W^2$,$w2^2$,and $W3^2$ decreased slightly and $\delta2^2$ increased slgihtly. However, the value of $B^2$ and $\delta1^2$ became much smaller than before. The $\delta1^2$ is a measure of the homogeneity among the PSU totals. Decrease in this term indicates that the variation
-within PSUs is much larger than the variation among PSU totals under the ppswr/srs/srs design. This is most obvious in the varible "Hispanis","Gender".
+For all three variables,when switching to a ppswr/srs/srs design from an srs/srs/srs design, $W^2$,$w_2^2$,and $W_3^2$ decreased slightly and $\delta_2^2$ increased slightly. However, the value of $B^2$ and $\delta_1^2$ became much smaller when PPS is used in the first stage instead of SRS. The $\delta_1^2$ is a measure of the homogeneity among the PSU totals. The decrease in $\delta_1^2$ indicates that the variation within PSUs is much larger than the variation among PSU totals under the ppswr/srs/srs design. This is most obvious in the variable "Hispanics" and "Gender".
