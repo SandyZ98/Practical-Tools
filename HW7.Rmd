@@ -1,11 +1,120 @@
 ---
-title: "SURVMETH 745 HW6"
+title: "SURVMETH 745 HW7"
 author: "Stacey Frank & Chendi Zhao"
 date: "3/11/2022"
 output:
   html_document:
     df_print: paged
 ---
+
+# Question 1: VDK 10.3
+
+## 10.3a 
+
+Compute total expected sample sizes for the two domains and the total sample size across domains.
+
+Expected sample size for a single domain: $S_i=\sum_{d=1}^{D}f_dN_i(d)$ where $f_1=0.05$ and $f_2=0.15$; $N_i(1)=615$ and $N_i(2)=405$
+
+$S_1=0.05\cdot615= 30.75≈31$
+
+$S_2=0.15\cdot405= 60.75≈61$
+
+Total sample size across domains: $S=\sum_{i\in U}S_i=\sum_{d=1}^{D}f_d\sum_{i\in U}N_i(d)$
+
+$S=S_1+S_2=91.5≈92$
+
+## 10.3b
+
+Composite MOS for each PSU and the total across PSUs. Verify that the grand total equals the total expected sample size.
+
+```{r, eval=FALSE}
+PSU   Composite MOS
+1	    7
+2	    6
+3	    16
+4	    5.5
+5	    6.25
+6	    7.5
+7	    14.5
+8	    12.25
+9	    6.5
+10	  10
+```
+
+
+Total: 7+6+16+5.5+6.25+7.5+14.5+12.25+6.5+10=91.5≈92
+
+The result matches with the number we calculated in (a), therefore the grand total equals the total expected sample size.
+
+## 10.3c
+Compute the selection probability for each PSU.
+
+$\pi_i=\frac{n}{S}S_i$
+
+Take PSU 1 as an example: $\pi_i=\frac{4}{91.5}\cdot7=.306$
+
+```{r, eval=FALSE}
+PSU   Selection Probability
+1	    0.306010929
+2	    0.262295082
+3	    0.699453552
+4	    0.240437158
+5	    0.273224044
+6	    0.327868852
+7	    0.633879781
+8	    0.535519126
+9	    0.284153005
+10	  0.43715847
+```
+
+
+
+
+## 10.3d
+Compute domain sampling rate and expected domain sample size within each PSU. Are the expected sample sizes integers? If not, what method can be used for sampling within a PSU that will achieve the desired rate?
+
+The within-PSU sampling rate for units in domain d is $\pi_{k\mid i}(d)=\frac{n_i^*(d)}{N_i^*(d)}=\frac{\bar{n}}{S_i}f_d$
+
+Expected sample size = $\sum_{i\in U}\sum_{d=1}^{D}N_i(d)\pi_{k\mid i}(d)$
+
+Take PSU 1 as an example:  E(n(1))= E(n(1,1))+ E(n(1,2))=80*(22.875*0.05/7)+ 20*(22.875*0.15/7)=13.1+9.8=22.9
+
+```{r, eval=FALSE}
+Domain sampling rate:
+PSU	  d=1	          d=2
+1	    0.163392857	  0.490178571
+2	    0.190625	    0.571875
+3	    0.071484375	  0.214453125
+4	    0.207954545	  0.623863636
+5	    0.183	        0.549
+6	    0.1525	      0.4575
+7	    0.07887931	  0.236637931
+8	    0.093367347	  0.280102041
+9	    0.175961538	  0.527884615
+10	  0.114375	    0.343125
+
+Expected domain sample size of each PSU:
+
+PSU	  d=1	        d=2	            Total
+1	    13.07142857	9.803571429	    22.875
+2   	11.4375	    11.4375	        22.875
+3   	3.57421875	19.30078125	    22.875
+4   	16.63636364	6.238636364	    22.875
+5   	9.15	      13.725	        22.875
+6   	13.725	    9.15	          22.875
+7   	3.943965517	18.93103448	    22.875
+8   	4.668367347	18.20663265	    22.875
+9	    9.677884615	13.19711538	    22.875
+10	  5.71875	    17.15625	      22.875
+```
+
+## 10.3e
+Verify that the expected sample sizes for any four of the PSUs sum to the total expected sample size you computed in (a).
+
+According to the result in (d), the expected sample size of all PSUs is 22.9. Therefore, the sum of expected sample size for any four of the PSUs is 22.9*4≈92, which equals to the expected total sample size obtained in (a).
+
+
+# Question 2
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -22,8 +131,6 @@ options(tigris_use_cache =T)
 
 ```
 
-
-
 ```{r, include=FALSE}
 
 ## Pull variable list from Census API
@@ -34,12 +141,11 @@ View(load_variables(2019, "acs5", cache = TRUE))
 
 ```
 
-## Pull DC total population and non-hispanic black population from ACS
+```{r, message=FALSE, warning=FALSE}
 
-B01001_001: total population count
-B03002_004: count of non-hispanic blacks
-
-```{r}
+# Pull DC total population and non-hispanic black population from ACS:
+# B01001_001: total population count
+# B03002_004: count of non-hispanic blacks
 
 dc.nhblack <- get_acs(geography = "tract", 
                     variables = "B03002_004", 
@@ -50,9 +156,11 @@ dc.nhblack <- get_acs(geography = "tract",
 
 ```
 
-## Map of Dc population counts by tract denoted
+## Map of DC population counts by tract
 
-```{r}
+The population total for each tract is included as a popup within each tract.
+
+```{r, message=FALSE, warning=FALSE}
 
 pal1 <- colorBin(palette = "Greys", 
                  domain = dc.nhblack$summary_est, bins=10)
@@ -65,6 +173,7 @@ dc.nhblack %>%
               color = "black",
               weight = 1)%>%
   addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+              label = ~paste0("Total Population: ", dc.nhblack$summary_est),
               stroke = FALSE,
               smoothFactor = 0,
               fillOpacity = 0.7,
@@ -76,12 +185,16 @@ dc.nhblack %>%
             opacity = 1)
 
 ```
-## Map with Dc population proportion of non-hispanic Blacks denoted
+## Map of DC population proportion of non-hispanic blacks by tract
 
-```{r}
+The proportion of non-hispanic blacks is included as a popup for each tract.
+
+```{r, message=FALSE, warning=FALSE}
 pal2 <- colorBin(palette = "BuGn", 
                  domain = dc.nhblack$estimate/dc.nhblack$summary_est*100, 
                  bins=10)
+
+dc.nhblack$prop.nhs<-dc.nhblack$estimate/dc.nhblack$summary_est
 
 dc.nhblack %>%
   st_transform(crs = "+init=epsg:4326") %>%
@@ -91,6 +204,7 @@ dc.nhblack %>%
               color = "black",
               weight = 1)%>%
   addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+              label = ~paste0("Proportion of non-hispanic blacks: ", round(dc.nhblack$prop.nhs, digits = 2)),
               stroke = FALSE,
               smoothFactor = 0,
               fillOpacity = 0.7,
@@ -102,4 +216,4 @@ dc.nhblack %>%
             labFormat = labelFormat(suffix="%"),
             opacity = 1)
 ```
-#This map of non-Hispanic blacks in DC shows that this population his heavily concentrated in the NE and SE quadrants of the city. Though the overal population map shows that other portions of the city are more densly populated overall, the proportion of blacks in the SE quadrant in particular shows taht those areas are overwhelmingly homogeneous in their racial makeup. In comparison to the median income map created in class, we see that the NW quadrant has the highest median income, which is the area that is least populated by non-hispanic blacks. Median income is very low in NE and SE. One of the areas in southern DC with comparatively high income is census tract 73.01, which this map shows has a fairly low proportion of non-hispanic blacks living there.
+This map of non-Hispanic blacks in DC shows that this subpopulation is heavily concentrated in the NE and SE quadrants of the city. Though the overall population map shows that other portions of the city are more densely populated in general, the proportion of blacks in the SE quadrant in particular shows that those areas are overwhelmingly homogeneous in their racial makeup. The median income map created during class showed that the NW quadrant has the highest median income, and by comparing with t his map, we see that is the area with smallest percentage of non-hispanic blacks. Median income is very low in NE and SE. One of the areas in southern DC with comparatively higher income is census tract 73.01, which this map shows has a fairly low proportion of non-hispanic blacks living there, unlike the other tracts that border it on the east.
