@@ -1,0 +1,242 @@
+---
+title: "SURVMETH Class 8 Lab Code"
+author: "Stacey Frank"
+date: "3/11/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tigris)
+library(leaflet)
+library(glue)
+library(sf)
+library(tidycensus)
+
+options(tigris_class ="sf")
+options(tigris_use_cache =T)
+
+```
+
+# Example 1: Create map of Washington Dc tracts, block groups and blocks
+
+## Dc Tract Shapefile
+
+```{r}
+
+dc_trt <- tracts("District of Columbia", year=2019)
+dc_trt_trans <- st_transform(dc_trt, 
+                             "+proj=longlat +datum=WGS84")
+
+```
+
+```{r}
+dc_trt[1:2,]
+```
+## DC Tract Map
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addPolygons(data=dc_trt_trans,
+              popup = ~NAME)
+```
+## Blockgroup and block map shapefile
+
+```{r}
+dc_bg <- block_groups("District of Columbia", year=2019)
+dc_bg_trans <- st_transform(dc_bg, "+proj=longlat +datum=WGS84")
+
+dc_blk <- blocks("District of Columbia", year=2019)
+dc_blk_trans <- st_transform(dc_blk, "+proj=longlat +datum=WGS84")
+```
+
+## DC blockgroup map layered with tracts
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addPolygons(data=dc_trt_trans,
+              popup = ~NAME) %>%
+  addPolygons(data=dc_bg_trans,
+              popup = ~GEOID,
+              color = "red",
+              weight = 1,
+              opacity= 1,
+              smoothFactor = 1,
+              fillOpacity = 0,
+              fillColor= "#BDBDC3"
+              ) 
+```
+## Now add Dc blocks layered with block groups and tracts
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addPolygons(data=dc_trt_trans,
+              popup = ~NAME,
+              fillOpacity = 0,
+              fillColor= "snow") %>%
+  addPolygons(data=dc_bg_trans,
+              popup = ~GEOID,
+              color = "red",
+              weight = 2,
+              opacity= 0.8,
+              smoothFactor = 1,
+              fillOpacity = 0,
+              fillColor= "snow") %>%
+  addPolygons(data=dc_blk_trans,
+              popup = ~GEOID10,
+              color = "green",
+              weight = 0.7,
+              opacity= 2,
+              smoothFactor = 1,
+              fillOpacity = 0,
+              fillColor= "snow")
+```
+##Now are selecting only a few blockgroups (will need to do this for project)
+
+```{r}
+dc_bg_select<-dc_bg_trans [31:40,]
+
+leaflet() %>%
+  addTiles() %>%
+  addPolygons(data=dc_trt_trans,
+              popup = ~NAME) %>%
+  addPolygons(data=dc_bg_select,
+              color = "red",
+              weight = 1,
+              popup = ~GEOID)
+```
+# Example 2: To create a map of Washington DC tracts with ACS 2019 summary file data with
+
+## Median income, population size, population proportion of blacks
+
+```{r}
+api_key <-"c3d3ea517c64b3c262d71c51135e449f6d98bf24" 
+# Request at https://api.census.gov/data/key_signup.html 
+
+census_api_key(key=api_key) 
+# "install=T" stores your api_key
+# If stored, checking api_key as follows:
+#    readRenviron("~/.Renviron")
+#    Sys.getenv("CENSUS_API_KEY")
+```
+```{r}
+View(load_variables(2019, "acs5", cache = TRUE))
+```
+
+# Map with median income 
+## B06011_001 is the median income
+
+## First get income data from ACS
+
+```{r}
+DC_INCOME <- get_acs(geography = "tract", 
+                     variables = "B06011_001", 
+                     state = "District of Columbia",
+                     geometry = TRUE) 
+
+head(DC_INCOME)
+```
+## How I want to note the income differences on the map
+
+```{r}
+palette <- colorBin(palette = "Blues", 
+                 domain = DC_INCOME$estimate, bins=10)
+
+```
+
+## More information about palette color options: http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+
+## To create the income map
+
+```{r}
+DC_INCOME %>%
+  st_transform(crs = "+init=epsg:4326") %>%
+  leaflet(width = "100%") %>%
+  addProviderTiles(provider = "CartoDB.Positron") %>%
+  addPolygons(popup = ~GEOID,
+              color = "black",
+              weight = 1)%>%
+  addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+              stroke = FALSE,
+              smoothFactor = 0,
+              fillOpacity = 0.7,
+              color = ~ palette(estimate)) %>%
+  addLegend("bottomleft", 
+            pal = palette, 
+            values = ~ estimate,
+            title = "Median income - Tract",
+            labFormat = labelFormat(prefix = "$"),
+            opacity = 1) 
+```
+## Map with population counts
+
+### From the variable list, we know B01001_00 is the total population count and B01001B_001 is the count of Blacks
+
+```{r}
+DC_BLACK <- get_acs(geography = "tract", 
+                    variables = "B01001B_001", 
+                    state = "District of Columbia",
+                    geometry = TRUE,
+                    summary_var="B01001_001")  
+```
+### estimate is the counts of Blacks (B01001B_001) and symmary_est is the count of populaiton (B01001_001)
+
+## Map of total population counts
+
+```{r}
+
+pal1 <- colorBin(palette = "Greys", 
+                 domain = DC_BLACK$summary_est, bins=10)
+
+DC_BLACK %>%
+  st_transform(crs = "+init=epsg:4326") %>%
+  leaflet(width = "100%") %>%
+  addProviderTiles(provider = "CartoDB.Positron") %>%
+  addPolygons(popup = ~GEOID,
+              color = "black",
+              weight = 1)%>%
+  addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+              stroke = FALSE,
+              smoothFactor = 0,
+              fillOpacity = 0.7,
+              color = ~ pal1(summary_est)) %>%
+  addLegend("bottomleft", 
+            pal = pal1, 
+            values = ~ summary_est,
+            title = "Total population - Tract",
+            opacity = 1)
+```
+## Map with population proportion of Blacks
+
+```{r}
+pal2 <- colorBin(palette = "BuGn", 
+                 domain = DC_BLACK$estimate/DC_BLACK$summary_est*100, 
+                 bins=10)
+
+DC_BLACK %>%
+  st_transform(crs = "+init=epsg:4326") %>%
+  leaflet(width = "100%") %>%
+  addProviderTiles(provider = "CartoDB.Positron") %>%
+  addPolygons(popup = ~GEOID,
+              color = "black",
+              weight = 1)%>%
+  addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+              stroke = FALSE,
+              smoothFactor = 0,
+              fillOpacity = 0.7,
+              color = ~ pal2(estimate/summary_est*100)) %>%
+  addLegend("bottomleft", 
+            pal = pal2, 
+            values = ~ estimate/summary_est*100,
+            title = "Proportion of Blacks - Tract",
+            labFormat = labelFormat(suffix="%"),
+            opacity = 1)
+```
+

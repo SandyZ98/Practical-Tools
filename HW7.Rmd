@@ -1,0 +1,105 @@
+---
+title: "SURVMETH 745 HW6"
+author: "Stacey Frank & Chendi Zhao"
+date: "3/11/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tigris)
+library(leaflet)
+library(glue)
+library(sf)
+library(tidycensus)
+
+options(tigris_class ="sf")
+options(tigris_use_cache =T)
+
+```
+
+
+
+```{r, include=FALSE}
+
+## Pull variable list from Census API
+
+Sys.getenv("CENSUS_API_KEY")
+
+View(load_variables(2019, "acs5", cache = TRUE))
+
+```
+
+## Pull DC total population and non-hispanic black population from ACS
+
+B01001_001: total population count
+B03002_004: count of non-hispanic blacks
+
+```{r}
+
+dc.nhblack <- get_acs(geography = "tract", 
+                    variables = "B03002_004", 
+                    state = "District of Columbia",
+                    geometry = TRUE,
+                    summary_var="B01001_001") 
+
+
+```
+
+## Map of Dc population counts by tract denoted
+
+```{r}
+
+pal1 <- colorBin(palette = "Greys", 
+                 domain = dc.nhblack$summary_est, bins=10)
+
+dc.nhblack %>%
+  st_transform(crs = "+init=epsg:4326") %>%
+  leaflet(width = "100%") %>%
+  addProviderTiles(provider = "CartoDB.Positron") %>%
+  addPolygons(popup = ~GEOID,
+              color = "black",
+              weight = 1)%>%
+  addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+              stroke = FALSE,
+              smoothFactor = 0,
+              fillOpacity = 0.7,
+              color = ~ pal1(summary_est)) %>%
+  addLegend("bottomleft", 
+            pal = pal1, 
+            values = ~ summary_est,
+            title = "Total population - Tract",
+            opacity = 1)
+
+```
+## Map with Dc population proportion of non-hispanic Blacks denoted
+
+```{r}
+pal2 <- colorBin(palette = "BuGn", 
+                 domain = dc.nhblack$estimate/dc.nhblack$summary_est*100, 
+                 bins=10)
+
+dc.nhblack %>%
+  st_transform(crs = "+init=epsg:4326") %>%
+  leaflet(width = "100%") %>%
+  addProviderTiles(provider = "CartoDB.Positron") %>%
+  addPolygons(popup = ~GEOID,
+              color = "black",
+              weight = 1)%>%
+  addPolygons(popup = ~ str_extract(NAME, "^([^,]*)"),
+              stroke = FALSE,
+              smoothFactor = 0,
+              fillOpacity = 0.7,
+              color = ~ pal2(estimate/summary_est*100)) %>%
+  addLegend("bottomleft", 
+            pal = pal2, 
+            values = ~ estimate/summary_est*100,
+            title = "Proportion of non-Hispanic Blacks - Tract",
+            labFormat = labelFormat(suffix="%"),
+            opacity = 1)
+```
+#This map of non-Hispanic blacks in DC shows that this population his heavily concentrated in the NE and SE quadrants of the city. Though the overal population map shows that other portions of the city are more densly populated overall, the proportion of blacks in the SE quadrant in particular shows taht those areas are overwhelmingly homogeneous in their racial makeup. In comparison to the median income map created in class, we see that the NW quadrant has the highest median income, which is the area that is least populated by non-hispanic blacks. Median income is very low in NE and SE. One of the areas in southern DC with comparatively high income is census tract 73.01, which this map shows has a fairly low proportion of non-hispanic blacks living there.
