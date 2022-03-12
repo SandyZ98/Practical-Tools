@@ -74,6 +74,7 @@ PSU   Selection Probability
 Compute domain sampling rate and expected domain sample size within each PSU. Are the expected sample sizes integers? If not, what method can be used for sampling within a PSU that will achieve the desired rate?
 
 The within-PSU sampling rate for units in domain d is $\pi_{k\mid i}(d)=\frac{n_i^*(d)}{N_i^*(d)}=\frac{\bar{n}}{S_i}f_d$
+where $\bar{n}$=n/4=91.5/4=22.875
 
 Expected sample size = $\sum_{i\in U}\sum_{d=1}^{D}N_i(d)\pi_{k\mid i}(d)$
 
