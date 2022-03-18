@@ -1,0 +1,100 @@
+---
+title: "PracTools Project"
+author: "Stacey Frank&Chendi Zhao"
+date: "3/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(PracTools)
+library(tidyverse)
+library(sampling)
+library(tidycensus)
+library(readxl)
+set.seed(-741881304)
+```
+
+#dat
+```{r}
+#census_api_key("8d57522614835c99dcce8b73512ec3760320d47d", install = TRUE)
+Tract<- read_excel("C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_Tract.xlsx")
+BG<- read_excel("C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_Blockgroup.xlsx")
+```
+
+#Sample size
+```{r}
+#Age group 1: 18-44
+n_age1=ceiling(100/.6)
+#Age group 2: 45-64
+n_age2=ceiling(100/.7)
+#Age group 3: 65+
+n_age3=ceiling(100/.85)
+# Total Sample size
+n=n_age1+n_age2+n_age3
+cbind(n_age1,n_age2,n_age3,n)
+```
+
+#Data preparation
+## Combine two sheets
+## Combine Age groups
+````{r}
+#Blockgroup-12 digits; Track- 11 digits- Tract=Blockgroup- last digit
+head(BG$BlockGroup)
+tail(BG$BlockGroup)
+BG$Tract<-str_extract(BG$BlockGroup, "^\\d{11}")
+head(BG$Tract)
+tail(BG$Tract)
+#check
+check<-BG%>%group_by(Tract)%>%
+  summarise(m1=sum(TotHH),
+            m2=sum(TotPerson))
+dim(check)
+dim(Tract)
+setdiff(check$Tract,Tract$Tract) 
+setdiff(check$m1,Tract$TotHH)
+setdiff(check$m2,Tract$TotPerson)
+#Yeah!
+
+BG<-BG%>%mutate(
+  Age1_Female=Female18to19Yrs+Female20Yrs+Female21Yrs+Female22to24Yrs+Female25to29Yrs+Female30to34Yrs+Female35to39Yrs+Female40to44Yrs,
+  Age2_Female=Female45to49Yrs+Female50to54Yrs+Female55to59Yrs+Female60to61Yrs+Female62to64Yrs,
+  Age3_Female=Female65to66Yrs+Female67to69Yrs+Female70to74Yrs+Female75to79Yrs+Female80to84Yrs+FemaleGE85Yrs,
+  Age1_Male=Male18to19Yrs+Male20Yrs+Male21Yrs+Male22to24Yrs+Male25to29Yrs+Male30to34Yrs+Male35to39Yrs+Male40to44Yrs,
+  Age2_Male=Male45to49Yrs+Male50to54Yrs+Male55to59Yrs+Male60to61Yrs+Male62to64Yrs,
+  Age3_Male=Male65to66Yrs+Male67to69Yrs+Male70to74Yrs+Male75to79Yrs+Male80to84Yrs+MaleGE85Yrs)%>%
+  mutate(
+    Age1_Total=Age1_Female+Age1_Male,
+    Age2_Total=Age2_Female+Age2_Male,
+    Age3_Total=Age3_Female+Age3_Male,
+    Target_Total=Age1_Total+Age2_Total+Age3_Total)
+
+rename(BG,BG_Name=NAME)
+BG$Tract_Name<-substring(BG$NAME, regexpr(",", BG$NAME) + 1)
+
+#write.csv(BG,"C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_dat(3.18.2021).csv",row.names = F)
+```
+
+#Descriptives
+```{r}
+dat<-read.csv("C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_dat(3.18.2021).csv",stringsAsFactors = F)
+
+total=sum(dat$TotPerson)
+N=sum(dat$Target_Total)
+N_Age1=sum(dat$Age1_Total)
+N_Age2=sum(dat$Age2_Total)
+N_Age3=sum(dat$Age3_Total)
+
+N_Male=sum(dat$Age1_Male,dat$Age2_Male,dat$Age3_Male)
+N_Female=sum(dat$Age1_Female,dat$Age2_Female,dat$Age3_Female)
+
+N
+N/total
+
+#By Age
+cbind(N_Age1/N,N_Age2/N,N_Age3/N)
+#By Gender
+cbind(N_Female/N,N_Male/N)
+
+#Sampling Rate
+n/N
+```
