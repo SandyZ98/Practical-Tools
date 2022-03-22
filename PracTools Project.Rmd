@@ -219,5 +219,3 @@ leaflet() %>%
               popup = ~NAMELSAD10,
               label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
 ```
-
-
