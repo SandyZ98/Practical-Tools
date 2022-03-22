@@ -152,6 +152,9 @@ $\bar{n}\bar{\bar{q}}\leq Q_i$ for each PSU
 $\pi_i$,$\pi_{j|i}$,$\pi_{k|ij}$ less or equal to 1
 
 # 4.Sample Selction
+```{r}
+strata(data, stratanames=NULL, size, method="systematic", pik,description=FALSE)
+```
 # 5.Anticipated Precision (???)
 
 # 6.General explanation of variance estimation & Additional considerations
