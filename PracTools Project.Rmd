@@ -30,7 +30,23 @@ Tract<- read_excel("C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_Tract.xlsx")
 BG<- read_excel("C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_Blockgroup.xlsx")
 ```
 
+#Preparation
+Textbook P279:In some cases, small census tracts were combined to obtain a minimum number of HUs. In urban areas the minimum was 150 HUs; in rural areas,
+it was 100.
+```{r}
+table(Tract$TotHH<=100)
+table(Tract$TotHH<=150)
+#All tracts are of sufficient size
+table(BG$TotHH<=100)
+table(BG$TotHH<=150)
+```
 # 3. Sampling Design 
+
+Steps:
+a. Compute composite MOS and selection probability for each PSU and SSU
+b. Quality checks
+c. Combining uneligible/feasible SSU
+d. Repeat step a and construct the sample frame
 
 Objectives: 
  1.self-weighting 
@@ -151,18 +167,26 @@ $\bar{\bar{q}}\leq Q_{ij}$ for each SSU
 $\bar{n}\bar{\bar{q}}\leq Q_i$ for each PSU
 $\pi_i$,$\pi_{j|i}$,$\pi_{k|ij}$ less or equal to 1
 
-# 4.Sample Selction
+
+Note: There are 13 tracts that only have one BG---- we are not using 
+Sampford's method.
+
+However, notice that this sample design of selecting tracts first, followed by a single BG per tract, is not the same as selecting BG’s directly.  If we selected BG’s directly using Sampford's method, all pairs of BG’s would have non-zero joint selection probabilities.  Since we select tracts and then 1 BG per tract, the joint selection probability of any two BG’s in a given tract is zero. 
+
+# 4.Sample Selection
 ```{r}
-strata(data, stratanames=NULL, size, method="systematic", pik,description=FALSE)
+Use code from Exercise 9.8
 ```
 # 5.Anticipated Precision (???)
+
+The fact that only 1 BG is selected per tract might raise the question of whether variances can be estimated with this design.  We can still estimate design-variances because the number of first-stage units is 15, the number of sample tracts.  See Textbook 9.2.1
+
 
 # 6.General explanation of variance estimation & Additional considerations
 # 7.Maps
 # Create maps of PG County Tracts and Selected Block Groups
 
 ```{r, echo = FALSE, message = FALSE, results = "hide"}
-
 ## PG County Tract Shapefile
 
 pg_trt <- tracts(state="MD", county="Prince", year=2010)
