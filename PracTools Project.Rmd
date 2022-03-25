@@ -254,12 +254,8 @@ PG.map <- leaflet() %>%
               fillColor= "snow",
               label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
 
-
-
-install.packages("webshot")
-
-## 'leaflet' objects (image above)
-mapshot(PG.map, file = paste0(getwd(), "/map.png"))
+## Save map to PNG
+mapshot(PG.map, file = paste0(getwd(), "/PG.map.png"))
 
 ```
 
@@ -269,7 +265,7 @@ mapshot(PG.map, file = paste0(getwd(), "/map.png"))
 #Need to replace in this line with a list of all the block groups that were actually selected
 pg_bg_sample<-pg_bg_trans [1:15,]
 
-leaflet() %>%
+PG.select.map <- leaflet() %>%
   addTiles() %>%
   addPolygons(data=pg_trt_trans,
               popup = ~NAMELSAD10,
@@ -280,4 +276,7 @@ leaflet() %>%
               weight = 3,
               popup = ~NAMELSAD10,
               label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
+
+## Save map to PNG
+mapshot(PG.select.map, file = paste0(getwd(), "/PG.select.map.png"))
 ```
