@@ -1,11 +1,21 @@
 ---
-title: "PracTools Project"
-author: "Stacey Frank&Chendi Zhao"
-date: "3/18/2022"
-output: html_document
+title: "Practical Tools Sampling Project"
+author: "Stacey Frank & Chendi Zhao"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: yes
+    df_print: kable
+link_citations: true
+linkcolor: blue
+geometry: margin = 1in
 ---
 
 ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r include=FALSE}
 library(PracTools)
 library(tidyverse)
 library(sampling)
@@ -15,6 +25,8 @@ library(tigris)
 library(leaflet)
 library(glue)
 library(sf)
+library(mapview)
+library(webshot)
 
 options(tigris_class ="sf")
 options(tigris_use_cache =T)
@@ -22,25 +34,36 @@ options(tigris_use_cache =T)
 set.seed(-741881304)
 ```
 
+# Introduction
+
+This report will outline the process for sample design and selection for a sample of census tracts, block groups, and persons from Prince George's County, MD. This sample was designed to allow for estimates of the proportion of persons in different age groups who have civic awareness. Civic awareness will be measured by asking respondents questions about the name of their district representative in the U.S. House of Representatives, the name of their local delegate to the Maryland house of Delegates, and other indicators. 
+
+A three-stage cluster sample was drawn, with a probability proportional to size (PPS) sample of 15 primary sampling units (PSUs), a PPS sample of 1 secondary sampling unit (SSU) within each PSU, and a simple random sample (SRS) of elements within each SSU. Given that the goal of this study is to measure civic awareness within certain age domains, a composite measure of size was used that accounted for the prevalence of certain age groups within clusters. Using this method of selection should ensure that a targeted number of respondents per age group will be achieved in the final sample. 
+
+First, this report will explain the overall sample design and the method of assigning measure of size to PSUs and SSUs. Next, we will describe the method of sample selection and the units that were selected. Lastly, we will discuss the precision of estimates that can be anticipated from this sample, and the process for correctly measuring the variance of estimates in the achieved sample.
+
+```{r include=FALSE}
 #dat
 
-```{r}
 #census_api_key("8d57522614835c99dcce8b73512ec3760320d47d", install = TRUE)
-Tract<- read_excel("C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_Tract.xlsx")
-BG<- read_excel("C:/Users/cd_zh/Desktop/745/PrinceGeorgeMD_Blockgroup.xlsx")
+
+Tract<- read_excel("PrinceGeorgeMD_Tract.xlsx")
+BG<- read_excel("PrinceGeorgeMD_Blockgroup.xlsx")
 ```
 
+```{r include=FALSE}
 #Preparation
-Textbook P279:In some cases, small census tracts were combined to obtain a minimum number of HUs. In urban areas the minimum was 150 HUs; in rural areas,
-it was 100.
-```{r}
+#Textbook P279:In some cases, small census tracts were combined to obtain a minimum number of HUs. In urban areas the minimum was 150 HUs; in rural areas,
+#it was 100.
+
 table(Tract$TotHH<=100)
 table(Tract$TotHH<=150)
 #All tracts are of sufficient size
 table(BG$TotHH<=100)
 table(BG$TotHH<=150)
 ```
-# 3. Sampling Design 
+
+# Sample Design 
 
 Steps:
 a. Compute composite MOS and selection probability for each PSU and SSU
@@ -56,7 +79,7 @@ Objectives:
  Domains(d):Age Groups 
  
 ##Population Information
-```{r}
+```{r include=FALSE}
 N=863420
 
 N_Male=414161
@@ -89,7 +112,7 @@ The purposes of the composite MOS are to get:
 2. Equal workload in each PSU, i.e., same total sample size in each PSU (across all domains)
 3. PSU selection probabilities that give “credit” for containing domains that are relatively rare in the population.
 
-```{r sampling rate&workload}
+```{r include=FALSE}
 #Sample size
 n=300
 n_d=100
@@ -173,20 +196,24 @@ Sampford's method.
 
 However, notice that this sample design of selecting tracts first, followed by a single BG per tract, is not the same as selecting BG’s directly.  If we selected BG’s directly using Sampford's method, all pairs of BG’s would have non-zero joint selection probabilities.  Since we select tracts and then 1 BG per tract, the joint selection probability of any two BG’s in a given tract is zero. 
 
-# 4.Sample Selection
-```{r}
-Use code from Exercise 9.8
+# Sample Selection
+
+```{r include=FALSE}
+#Use code from Exercise 9.8
 ```
-# 5.Anticipated Precision (???)
+# Anticipated Precision
 
 The fact that only 1 BG is selected per tract might raise the question of whether variances can be estimated with this design.  We can still estimate design-variances because the number of first-stage units is 15, the number of sample tracts.  See Textbook 9.2.1
 
 
-# 6.General explanation of variance estimation & Additional considerations
-# 7.Maps
-# Create maps of PG County Tracts and Selected Block Groups
+# Variance Estimation
+
+# Appendix
+
+## I think we should move the PG county tract/bg map into the sample design section and the sampled tracts map into the sample selection section
 
 ```{r, echo = FALSE, message = FALSE, results = "hide"}
+# Code to create maps of PG County Tracts and Selected Block Groups
 ## PG County Tract Shapefile
 
 pg_trt <- tracts(state="MD", county="Prince", year=2010)
@@ -211,7 +238,7 @@ pg_bg_trans <- st_transform(pg_bg,
 ## Map of Prince George's County, MD Tracts and Block Groups
 
 ```{r, echo = FALSE}
-leaflet() %>%
+PG.map <- leaflet() %>%
   addTiles() %>%
   addPolygons(data=pg_trt_trans,
               popup = ~NAMELSAD10,
@@ -225,7 +252,15 @@ leaflet() %>%
               smoothFactor = 1,
               fillOpacity = 0,
               fillColor= "snow",
-              label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10)) 
+              label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
+
+
+
+install.packages("webshot")
+
+## 'leaflet' objects (image above)
+mapshot(PG.map, file = paste0(getwd(), "/map.png"))
+
 ```
 
 ## Map of Sampled Block Groups in Prince George's County, MD
