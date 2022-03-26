@@ -67,6 +67,8 @@ table(BG$TotHH<=150)
 
 # Sample Design 
 
+## Overview and Sample Frame
+
 The target population for this study is the adult (18+) non-institutionalized population of Prince George's County, Maryland. The sample frame is the United States 2010 decennial census. 
 
 The primary goal of this sample design is to allow the estimation of the proportion of the Prince George's County, Maryland population that has certain markers of civic awareness. The client desires to conduct this analysis within three age groups: people aged 18-44, people aged 45-64, and people aged 65 or over. The desired number of interviews per age group is listed in Table 1.
@@ -95,7 +97,7 @@ img1_path <- "images/PG.map.png"
 
 include_graphics(img1_path) 
 ```
-
+## Measure of Size and Sampling Rate
 
 Steps:
 a. Compute composite MOS and selection probability for each PSU and SSU
@@ -138,7 +140,7 @@ N_Male_target;N_Female_target
 N_d1;N_d2;N_d3
 ```
 
-## Textbook 10.5
+##Textbook 10.5
 The purposes of the composite MOS are to get:
 1. Self-weighting samples from each of several domains
 2. Equal workload in each PSU, i.e., same total sample size in each PSU (across all domains)
