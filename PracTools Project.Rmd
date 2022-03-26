@@ -27,6 +27,8 @@ library(glue)
 library(sf)
 library(mapview)
 library(webshot)
+library(knitr)
+library(png)
 
 options(tigris_class ="sf")
 options(tigris_use_cache =T)
@@ -36,9 +38,9 @@ set.seed(-741881304)
 
 # Introduction
 
-This report will outline the process for sample design and selection for a sample of census tracts, block groups, and persons from Prince George's County, MD. This sample was designed to allow for estimates of the proportion of persons in different age groups who have civic awareness. Civic awareness will be measured by asking respondents questions about the name of their district representative in the U.S. House of Representatives, the name of their local delegate to the Maryland house of Delegates, and other indicators. 
+This report will outline the process for sample design and selection for a sample of census tracts, block groups, and persons from Prince George's County, Maryland. This sample was designed to allow for estimates of the proportion of persons in different age groups who have civic awareness. Civic awareness will be measured in a survey by asking respondents questions about the name of their district representative in the U.S. House of Representatives, the name of their local delegate to the Maryland house of Delegates, and other indicators. 
 
-A three-stage cluster sample was drawn, with a probability proportional to size (PPS) sample of 15 primary sampling units (PSUs), a PPS sample of 1 secondary sampling unit (SSU) within each PSU, and a simple random sample (SRS) of elements within each SSU. Given that the goal of this study is to measure civic awareness within certain age domains, a composite measure of size was used that accounted for the prevalence of certain age groups within clusters. Using this method of selection should ensure that a targeted number of respondents per age group will be achieved in the final sample. 
+A three-stage cluster sample was drawn, with probability proportional to size (PPS) selection of 15 primary sampling units (PSUs), PPS selection of 1 secondary sampling unit (SSU) within each PSU, and a simple random sample (SRS) selection of elements within each SSU.
 
 First, this report will explain the overall sample design and the method of assigning measure of size to PSUs and SSUs. Next, we will describe the method of sample selection and the units that were selected. Lastly, we will discuss the precision of estimates that can be anticipated from this sample, and the process for correctly measuring the variance of estimates in the achieved sample.
 
@@ -64,6 +66,36 @@ table(BG$TotHH<=150)
 ```
 
 # Sample Design 
+
+The target population for this study is the adult (18+) non-institutionalized population of Prince George's County, Maryland. The sample frame is the United States 2010 decennial census. 
+
+The primary goal of this sample design is to allow the estimation of the proportion of the Prince George's County, Maryland population that has certain markers of civic awareness. The client desires to conduct this analysis within three age groups: people aged 18-44, people aged 45-64, and people aged 65 or over. The desired number of interviews per age group is listed in Table 1.
+
+```{r echo = FALSE}
+
+age.tgt <- data.frame (age.grp  = c("18-44 years", "45-64 years", "65+ years", "Total"),
+                  n = c(100, 100, 100, 300))
+
+knitr::kable(age.tgt, col.names = c("Age Group","n (Respondents)"),           
+  caption = 'Desired Age Domain Sample Sizes')
+```
+
+Given that the goal of this study is to measure civic awareness within these three age domains, a composite measure of size was used in sampling that accounted for the prevalence of persons within these age groups within each cluster. Using this method of selection should ensure that a targeted number of respondents per age group will be achieved in the final sample. Secondary goals of this sample are to achieve these domain sample sizes while also achieving a self-weighting sample within the three age groups and also creating an equal interviewer workload within each PSU. 
+
+As specified by the client, this sample design uses census tracts as PSUs, block groups as SSUs, and persons as elements. A three-stage cluster sample was drawn, with a PPS sample of 15 tracts, a PPS sample of 1 block group within each tract, and a simple random sample of persons within each block group.
+
+Description of sample frame (units, data available, data source)
+
+Descriptive statistics for frame
+
+
+```{r fig.cap="Map of Prince George's County, MD Tracts and Block Groups", out.width = "75%", fig.align='center', message=FALSE, echo=FALSE}
+
+img1_path <- "images/PG.map.png"
+
+include_graphics(img1_path) 
+```
+
 
 Steps:
 a. Compute composite MOS and selection probability for each PSU and SSU
@@ -205,78 +237,7 @@ However, notice that this sample design of selecting tracts first, followed by a
 
 The fact that only 1 BG is selected per tract might raise the question of whether variances can be estimated with this design.  We can still estimate design-variances because the number of first-stage units is 15, the number of sample tracts.  See Textbook 9.2.1
 
-
 # Variance Estimation
 
 # Appendix
 
-## I think we should move the PG county tract/bg map into the sample design section and the sampled tracts map into the sample selection section
-
-```{r, echo = FALSE, message = FALSE, results = "hide"}
-# Code to create maps of PG County Tracts and Selected Block Groups
-## PG County Tract Shapefile
-
-pg_trt <- tracts(state="MD", county="Prince", year=2010)
-
-pg_trt_trans <- st_transform(pg_trt, 
-                             "+proj=longlat +datum=WGS84")
-
-pg_trt_trans[1:2,]
-
-```
-
-```{r, echo = FALSE, message = FALSE}
-## PG County Blockgroup Shapefile
-
-pg_bg <- block_groups(state="MD", county="Prince", year=2010)
-
-pg_bg_trans <- st_transform(pg_bg, 
-                             "+proj=longlat +datum=WGS84")
-
-```
-
-## Map of Prince George's County, MD Tracts and Block Groups
-
-```{r, echo = FALSE}
-PG.map <- leaflet() %>%
-  addTiles() %>%
-  addPolygons(data=pg_trt_trans,
-              popup = ~NAMELSAD10,
-              fillOpacity = 0, 
-              fillColor= "snow") %>%
-  addPolygons(data=pg_bg_trans,
-              popup = ~NAMELSAD10,
-              color = "black",
-              weight = 1,
-              opacity= 1,
-              smoothFactor = 1,
-              fillOpacity = 0,
-              fillColor= "snow",
-              label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
-
-## Save map to PNG
-mapshot(PG.map, file = paste0(getwd(), "/PG.map.png"))
-
-```
-
-## Map of Sampled Block Groups in Prince George's County, MD
-
-```{r, echo = FALSE}
-#Need to replace in this line with a list of all the block groups that were actually selected
-pg_bg_sample<-pg_bg_trans [1:15,]
-
-PG.select.map <- leaflet() %>%
-  addTiles() %>%
-  addPolygons(data=pg_trt_trans,
-              popup = ~NAMELSAD10,
-              fillOpacity = 0, 
-              fillColor= "snow") %>%
-  addPolygons(data=pg_bg_sample,
-              color = "red",
-              weight = 3,
-              popup = ~NAMELSAD10,
-              label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
-
-## Save map to PNG
-mapshot(PG.select.map, file = paste0(getwd(), "/PG.select.map.png"))
-```

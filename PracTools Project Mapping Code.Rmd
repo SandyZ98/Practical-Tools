@@ -1,0 +1,93 @@
+---
+title: "PracTools Project Mapping Code"
+author: "Stacey Frank"
+date: "3/25/2022"
+output: html_document
+---
+
+```{r include=FALSE}
+library(PracTools)
+library(tidyverse)
+library(sampling)
+library(tidycensus)
+library(readxl)
+library(tigris)
+library(leaflet)
+library(glue)
+library(sf)
+library(mapview)
+library(webshot)
+
+options(tigris_class ="sf")
+options(tigris_use_cache =T)
+
+```
+
+```{r, echo = FALSE, message = FALSE, results = "hide"}
+# Code to create maps of PG County Tracts and Selected Block Groups
+## PG County Tract Shapefile
+
+pg_trt <- tracts(state="MD", county="Prince", year=2010)
+
+pg_trt_trans <- st_transform(pg_trt, 
+                             "+proj=longlat +datum=WGS84")
+
+pg_trt_trans[1:2,]
+
+```
+
+```{r, echo = FALSE, message = FALSE}
+## PG County Blockgroup Shapefile
+
+pg_bg <- block_groups(state="MD", county="Prince", year=2010)
+
+pg_bg_trans <- st_transform(pg_bg, 
+                             "+proj=longlat +datum=WGS84")
+
+```
+
+## Map of Prince George's County, MD Tracts and Block Groups
+
+```{r, echo = FALSE}
+PG.map <- leaflet() %>%
+  addTiles() %>%
+  addPolygons(data=pg_trt_trans,
+              popup = ~NAMELSAD10,
+              fillOpacity = 0, 
+              fillColor= "snow") %>%
+  addPolygons(data=pg_bg_trans,
+              popup = ~NAMELSAD10,
+              color = "black",
+              weight = 1,
+              opacity= 1,
+              smoothFactor = 1,
+              fillOpacity = 0,
+              fillColor= "snow",
+              label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
+
+## Save map to PNG
+mapshot(PG.map, file = paste0(getwd(), "/PG.map.png"))
+
+```
+
+## Map of Sampled Block Groups in Prince George's County, MD
+
+```{r, echo = FALSE}
+#Need to replace in this line with a list of all the block groups that were actually selected
+pg_bg_sample<-pg_bg_trans [1:15,]
+
+PG.select.map <- leaflet() %>%
+  addTiles() %>%
+  addPolygons(data=pg_trt_trans,
+              popup = ~NAMELSAD10,
+              fillOpacity = 0, 
+              fillColor= "snow") %>%
+  addPolygons(data=pg_bg_sample,
+              color = "red",
+              weight = 3,
+              popup = ~NAMELSAD10,
+              label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
+
+## Save map to PNG
+mapshot(PG.select.map, file = paste0(getwd(), "/PG.select.map.png"))
+```
