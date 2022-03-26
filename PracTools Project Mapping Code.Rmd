@@ -73,8 +73,17 @@ mapshot(PG.map, file = paste0(getwd(), "/PG.map.png"))
 ## Map of Sampled Block Groups in Prince George's County, MD
 
 ```{r, echo = FALSE}
-#Need to replace in this line with a list of all the block groups that were actually selected
-pg_bg_sample<-pg_bg_trans [1:15,]
+#Some of this code references variables generated in the PracTools-Project RMD
+
+samdat$BlockGroup2 <- as.numeric(samdat$BlockGroup) - 240330000000
+
+table(pg_bg_trans$BLKGRPCE10)
+
+pg_bg_trans$bg.code <-  (as.numeric(pg_bg_trans$TRACTCE10)*10) + as.numeric(pg_bg_trans$BLKGRPCE10)
+
+
+pg_bg_sample<- pg_bg_trans %>%
+      filter(bg.code %in% samdat$BlockGroup2)
 
 PG.select.map <- leaflet() %>%
   addTiles() %>%
@@ -84,10 +93,10 @@ PG.select.map <- leaflet() %>%
               fillColor= "snow") %>%
   addPolygons(data=pg_bg_sample,
               color = "red",
-              weight = 3,
+              weight = 5,
               popup = ~NAMELSAD10,
               label = ~paste0("Tract: ", TRACTCE10, " Block Group: ", NAMELSAD10))
 
 ## Save map to PNG
-mapshot(PG.select.map, file = paste0(getwd(), "/PG.select.map.png"))
+mapshot(PG.select.map, file = paste0(getwd(), "/images/PG.select.map.png"))
 ```

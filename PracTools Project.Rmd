@@ -29,6 +29,7 @@ library(mapview)
 library(webshot)
 library(knitr)
 library(png)
+library(kableExtra)
 
 options(tigris_class ="sf")
 options(tigris_use_cache =T)
@@ -114,12 +115,11 @@ q
 
 # Sample Design 
 
-## Target Population and Goal of the sample design
+## Target Population and Goal of Sample Design
 
 The target population for this study is the adult (18+) non-institutionalized population of Prince George's County, Maryland. The sample frame is the United States 2010 decennial census.The population for this study's sampling frame includes approximately 657,421 persons.
 
 The primary goal of this sample design is to allow the estimation of the proportion of the Prince George's County, Maryland population that has certain markers of civic awareness. The client desires to conduct this analysis within three age groups: people aged 18-44, people aged 45-64, and people aged 65 or over. 
-
 
 The desired total sample size is 300 persons which was split equally among the three age groups.To achieve the desired sample size - which reflects completed questionnaires - one needs to account for non-response. The response rates for the three age groups are anticipated to be 0.60, 0.70 and 0.85, respectively. After adjusting to account for the non-response, the new desired total sample size is 428, with 167, 153, and  118 persons in each age group. Thus, the new overall sampling rate $f$ becomes 0.00065, calculated by $428/657421$. The sampling rate for each age group, $f_d$ can also be obtained using the same formula. The population, desired number of completed interviews, desired sample size, and sampling fraction per age group is listed in Table 1.
 
@@ -132,14 +132,15 @@ age.tgt <- data.frame (
   new_n=c(167,153,118,428),
   f=c(0.00048,0.00064,0.00145,0.00065))
 
-knitr::kable(age.tgt, col.names = c("Age Group","Population","n (Respondents)","Expected Response Rate","Desired Sample Size","Sampling Rate"),caption = 'Table 1 Desired Age Domain Sample Sizes')
+
+knitr::kable(age.tgt, col.names = c("Age Group","Population","n (Respondents)","Expected Response Rate","Target Sample Size","Sampling Rate"), caption = 'Table 1 Desired Age Domain Sample Sizes')
 ```
 
 ## Method of Selection
  
-Given that the goal of this study is to measure civic awareness within these three age domains, a composite measure of size was used in sampling that accounted for the prevalence of persons within these age groups within each cluster. Using this method of selection should ensure that a targeted number of respondents per age group will be achieved in the final sample. Secondary goals of this sample are to achieve these domain sample sizes while also achieving a self-weighting sample within the three age groups and also creating an equal interviewer workload within each PSU. The equal workload for each Tract can be calculated by $\bar{\bar{q}}=428/(15*1)\approx 28.5333$.
+Given that the goal of this study is to measure civic awareness within these three age domains, a composite measure of size was used in sampling that accounted for the prevalence of persons within these age groups within each cluster. Using this method of selection should ensure that a targeted number of respondents per age group will be achieved in the final sample. Secondary goals of this sample are to achieve these domain sample sizes while also achieving a self-weighting sample within the three age groups and also creating an equal interviewer workload within each PSU. The equal workload for each tract can be calculated by $\bar{\bar{q}}=428/(15*1)\approx 28.5333$.
  
-As specified by the client, this sample design uses census tracts as PSUs, block groups as SSUs, and persons as elements. In total, there are 218 tracts and 523 block groups in the sampling frame. We will the composite measure of size (MOS) method to meet the sampling goals. This method can also provide PSU selection probabilities that give “credit” for containing domains that are relatively rare in the population. To be specific, a three-stage cluster sample was drawn, with a  systematic sampling with probabilities proportional to size in PSUs and SSUs,and a simple random sample of persons within each block group.
+As specified by the client, this sample design uses census tracts as PSUs, block groups as SSUs, and persons as elements. In total, there are 218 tracts and 523 block groups in the sampling frame. We will use the composite measure of size (MOS) method to meet the sampling goals. This method can also provide PSU selection probabilities that give “credit” for containing domains that are relatively rare in the population. To be specific, a three-stage cluster sample was drawn, with systematic sampling with probabilities proportional to size in PSUs and SSUs,and a simple random sample of persons within each block group.
 
 
 Description of sample frame (units, data available, data source)
@@ -156,14 +157,13 @@ include_graphics(img1_path)
 
 Discuss whether a design that uses the same response rate for all persons could be used to achieve the sample size targets for each age group. (Pros and Cons)
 
-#Sample Selection
+# Sample Selection
 
-##Composite Measure of Size and Selection Probability
+## Composite Measure of Size and Selection Probability
 
-The composite MOS for each $PSU_{ij}$, $S_i=\sum_{j\epsilon U_i}S_{ij}=\sum_df_dQ_i(d)\\$, where $S_{ij}$ is the composite MOS for $SSU_j$ in $PSU_i$ and $Q_i$ is defined as number of elements in PSU i that are in domain d. Summing the $S_i$ will give us the total composite MOS, which should be equal to the total number of sample size, 428.
+The composite MOS for each $PSU_{ij}$, $S_i=\sum_{j\epsilon U_i}S_{ij}=\sum_df_dQ_i(d)\\$, where $S_{ij}$ is the composite MOS for $SSU_j$ in $PSU_i$ and $Q_i$ is defined as number of elements in PSU i that are in domain d. Summing the $S_i$ will give us the total composite MOS, which should be equal to the total desired sample size, 428.
 
-Given that both PSUs and SSUs are sampled pps using the composite
-MOS, the selection probability of $SSU_{ij}$ is defined as $\pi_i\pi_{k|ij}=mnS_{ij}/S$, where m is the number of sample PSUs and n is the number of sample SSUs in each PSU.Then, we are able to calculate the desired number of be selected from domain d in each SSU with $q_{ij}^*(d)=\bar{\bar{q}}f_d/S_{ij}$. It is worth to mentioning that $\bar{\bar{q}}$ is constant in each sampling stage. 
+Given that both PSUs and SSUs are sampled with probabilities proportional to the composite MOS, the selection probability of $SSU_{ij}$ is defined as $\pi_i\pi_{k|ij}=mnS_{ij}/S$, where m is the number of sample PSUs and n is the number of sample SSUs in each PSU.Then, we are able to calculate the desired number to be selected from domain d in each SSU with $q_{ij}^*(d)=\bar{\bar{q}}f_d/S_{ij}$. It is worth to mentioning that $\bar{\bar{q}}$ is constant in each sampling stage. 
 
 ## Quality Control Checks
 
@@ -174,9 +174,9 @@ After obtaining the information above, we did quality control checks to ensure t
 (3).$\bar{n}\bar{\bar{q}}\leq Q_i$ for each PSU
 (4).$\pi_i$,$\pi_{j|i}$,$\pi_{k|ij}$ less or equal to 1
 
-In the current sample frame, seven block groups listed in Table 2 were detected to be undersized. Based on the map of Prince George's County, these unqualified areas include air base, golf course, national park, and university campus. Therefore, we are confident to combine them with the nearest block group within the tract. 
+In the current sample frame, seven block groups listed in Table 2 were detected to be undersized. Based on the map of Prince George's County, these unqualified areas include an air base, golf course, park land, and a university campus. Therefore, we combined them with the nearest block group within the tract to ensure each cluster met the minimum criteria for selection. 
 
-The first three block groups in Table 2 are the only SSUs within the  tract. After combing them, the new block group was still have a desired sample size larger than the actual population in domain 3. We decided to keep the new group in the frame. If this new block group is sampled, we would sample more persons in domain 3 in the next sampled block group to achieve the expected sample size. Block Group 240338024082 and 240338035192 were combined with 240338024082 and 240338035191, respectively. Block Group 240338072002 and 240338072003 are university campus so there are mainly young adults living there. If we combine them together, there will still be insufficient sample for domain 2 and 3. Also, the population will be very disproportionately contributed across the domains. Therefore, we combined 240338072002 with 240338072001 and 240338072003 with 240338072004.
+The first three block groups in Table 2 are the only SSUs within that tract. After combing them, the new block group still had a desired sample size larger than the actual population in domain 3. We decided to keep the new group in the frame, since there were no other block groups within the tract that it could be combined with. If this new block group is sampled, we would sample more persons in domain 3 in the next sampled block group to achieve the expected sample size. Block Group 240338024082 and 240338035192 were combined with 240338024082 and 240338035191, respectively. Block Group 240338072002 and 240338072003 are a university campus so there are mainly young adults living there. If we combine them together, there will still be insufficient sample for domain 2 and 3. Also, the population will be very disproportionately contributed across the domains. Therefore, we combined 240338072002 with 240338072001 and 240338072003 with 240338072004.
 
 ```{r echo = FALSE}
 undersizebg <- data.frame (
@@ -190,13 +190,15 @@ undersizebg <- data.frame (
 knitr::kable(undersizebg, col.names = c("NO.","Block Group","Total Units","Domain 1","Domain 2","Domain 3"),caption = 'Table 2 Unqualified Block Groups')
 ```
 
-## Sample Selection
 
 ```{r include=FALSE}
+
+## Sample Selection
+
 set.seed(-741881304)
 #code from Exercise 9.6 
-SF_BG <- read_excel("C:/Users/cd_zh/Desktop/745/SampleFrame.xlsx")
-SF_Tract <- read_excel("C:/Users/cd_zh/Desktop/745/SF_Tract.xlsx")
+SF_BG <- read_excel("SampleFrame.xlsx")
+SF_Tract <- read_excel("SF_Tract.xlsx")
 SF_BG<-SF_BG[,1:9]
 SF_Tract<-SF_Tract[,1:10]
 #Tract ID
@@ -225,7 +227,7 @@ size = rep(1,m), method="systematic",pik=probi_2, description=TRUE)
 # extracts the observed data
 samdat <- getdata(samclus,s)
 samdat <- rename(samdat, "pi2"="Prob")
-write.csv(samdat,"C:/Users/cd_zh/Desktop/745/SampleResult.xlsx",row.names = F)
+write.csv(samdat,"SampleResult.xlsx",row.names = F)
 ```
 ## Selected units and characteristics of each
 The sampled block groups are listed in Table 3 with the information of household and population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample Block groups are selected, the sampling need to be done using fixed rates not fixed sample sizes.  
