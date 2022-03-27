@@ -191,34 +191,27 @@ knitr::kable(undersizebg, col.names = c("NO.","Block Group","Total Units","Domai
 
 
 ```{r include=FALSE}
-
-## Sample Selection
-
 set.seed(-741881304)
 #code from Exercise 9.6 
-SF_BG <- read_excel("SampleFrame.xlsx")
-SF_Tract <- read_excel("SF_Tract.xlsx")
+SF_BG <- read_excel("C:/Users/cd_zh/Desktop/745/SampleFrame.xlsx")
+SF_Tract <- read_excel("C:/Users/cd_zh/Desktop/745/SF_Tract.xlsx")
 SF_BG<-SF_BG[,1:9]
 SF_Tract<-SF_Tract[,1:10]
 #Tract ID
 SF_BG$Tract=floor(as.numeric(SF_BG$BlockGroup)/10)
-# make counts of SSUs and elements per PSU
-xx <- as.numeric(do.call("rbind",list(by(1:nrow(SF_BG),SF_BG$Tract,head,1))))
-pop.tmp <- SF_BG[xx,]
-Ni <- table(pop.tmp$Tract)
-m=15
 
+m=15
 
 SF_Tract$Si<-fd_1*SF_Tract$`Tol_18-44`+fd_2*SF_Tract$`Tol_45-64`+fd_3*SF_Tract$`Tol_65+`
 SF_BG$Si<-fd_1*SF_BG$`Tol_18-44`+fd_2*SF_BG$`Tol_45-64`+fd_3*SF_BG$`Tol_65+`
 
 probi_1 <- m*SF_Tract$Si /new_n
-sam <- cluster(data=SF_Tract, clustername="Tract", size=m,
+sam <- cluster(data=SF_BG, clustername="Tract", size=m,
 method="systematic", pik=probi_1, description=TRUE)
+
 # extract data for the sample clusters
 samclus <- getdata(SF_BG, sam)
 samclus <- rename(samclus,  "pi1"="Prob")
-
 # SSU
 probi_2 <- m*samclus$Si /new_n
 s <- strata(data = as.data.frame(samclus), stratanames = "Tract",
@@ -226,8 +219,8 @@ size = rep(1,m), method="systematic",pik=probi_2, description=TRUE)
 # extracts the observed data
 samdat <- getdata(samclus,s)
 samdat <- rename(samdat, "pi2"="Prob")
-write.csv(samdat,"SampleResult.xlsx",row.names = F)
 ```
+
 ## Selected units and characteristics of each
 The sampled block groups are listed in Table 3 with the information of household and population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample block groups are selected, the sampling need to be done using fixed rates not fixed sample sizes.  
 
