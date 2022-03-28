@@ -29,6 +29,7 @@ library(mapview)
 library(webshot)
 library(knitr)
 library(png)
+library(kableExtra)
 
 options(tigris_class ="sf")
 options(tigris_use_cache =T)
@@ -132,7 +133,7 @@ age.tgt <- data.frame (
   f=c(0.00048,0.00064,0.00145,0.00065))
 
 
-knitr::kable(age.tgt, col.names = c("Age Group","Population","n","Expected Response Rate","Target Sample Size","Sampling Rate"), caption = 'Desired Age Domain Sample Sizes')
+knitr::kable(age.tgt, col.names = c("Age Group","Population","n (Respondents)","Expected Response Rate","Target Sample Size","Sampling Rate"), caption = 'Table 1 Desired Age Domain Sample Sizes')
 ```
 
 ## Method of Selection
@@ -186,11 +187,14 @@ undersizebg <- data.frame (
   d2=c(0,0,183,2,2,0,9),
   d3=c(0,0,8,0,1,0,9))
 
-knitr::kable(undersizebg, col.names = c("NO.","Block Group","Total Units","Domain 1","Domain 2","Domain 3"),caption = 'Unqualified Block Groups')
+knitr::kable(undersizebg, col.names = c("NO.","Block Group","Total Units","Domain 1","Domain 2","Domain 3"),caption = 'Table 2 Unqualified Block Groups')
 ```
 
 
 ```{r include=FALSE}
+
+## Sample Selection
+
 set.seed(-741881304)
 #code from Exercise 9.6 
 SF_BG <- read_excel("SampleFrame.xlsx")
@@ -199,16 +203,19 @@ SF_BG<-SF_BG[,1:9]
 SF_Tract<-SF_Tract[,1:10]
 #Tract ID
 SF_BG$Tract=floor(as.numeric(SF_BG$BlockGroup)/10)
-
+# make counts of SSUs and elements per PSU
+xx <- as.numeric(do.call("rbind",list(by(1:nrow(SF_BG),SF_BG$Tract,head,1))))
+pop.tmp <- SF_BG[xx,]
+Ni <- table(pop.tmp$Tract)
 m=15
+
 
 SF_Tract$Si<-fd_1*SF_Tract$`Tol_18-44`+fd_2*SF_Tract$`Tol_45-64`+fd_3*SF_Tract$`Tol_65+`
 SF_BG$Si<-fd_1*SF_BG$`Tol_18-44`+fd_2*SF_BG$`Tol_45-64`+fd_3*SF_BG$`Tol_65+`
 
 probi_1 <- m*SF_Tract$Si /new_n
-sam <- cluster(data=SF_BG, clustername="Tract", size=m,
+sam <- cluster(data=SF_Tract, clustername="Tract", size=m,
 method="systematic", pik=probi_1, description=TRUE)
-
 # extract data for the sample clusters
 samclus <- getdata(SF_BG, sam)
 samclus <- rename(samclus,  "pi1"="Prob")
@@ -220,10 +227,10 @@ size = rep(1,m), method="systematic",pik=probi_2, description=TRUE)
 # extracts the observed data
 samdat <- getdata(samclus,s)
 samdat <- rename(samdat, "pi2"="Prob")
+write.csv(samdat,"SampleResult.xlsx",row.names = F)
 ```
-
 ## Selected units and characteristics of each
-The sampled block groups are listed in Table 3 with the information of household and population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample block groups are selected, the sampling need to be done using fixed rates not fixed sample sizes.  
+The sampled block groups are listed in Table 3 with the information of household and population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample Block groups are selected, the sampling need to be done using fixed rates not fixed sample sizes.  
 
 ```{r}
 result <- data.frame (
@@ -236,16 +243,7 @@ result <- data.frame (
   d3=samdat$`Tol_65+`,
   workload=rep(28.53,15))
 
-knitr::kable(result, col.names = c("NO.","Selected Block Group","Total Units","Total Household","Domain 1","Domain 2","Domain 3","Workload"),caption = 'Sample Result')
-```
-
-```{r fig.cap="Map of Sampled Block Groups in Prince George's County, MD", out.width = "75%", fig.align='center', message=FALSE, echo=FALSE}
-
-img2_path <- "images/PG.select_new.map.png"
-
-include_graphics(img2_path) 
-
-
+knitr::kable(result, col.names = c("NO.","Selected Block Group","Total Units","Total Household","Domain 1","Domain 2","Domain 3","Workload"),caption = 'Table 3 Sample Result')
 ```
 
 ## Selection Probabilities of units at each stage of selection
@@ -260,7 +258,7 @@ unname(1/summary(probi_2)))
 weights<-cbind(c("pi_i","pi_ij","1/pi_i","1/pi_ij"),weights)
 
 knitr::kable(weights, col.names = c(" ","Min","1st Quantile","Median","Mean","3st Quantile","Max"),
-             caption = 'Selection Probability and Weights')
+             caption = 'Table 4 Selection Probability and Weights')
 ```
 
 .....
@@ -273,110 +271,7 @@ knitr::kable(weights, col.names = c(" ","Min","1st Quantile","Median","Mean","3s
 
 The fact that only 1 BG is selected per tract might raise the question of whether variances can be estimated with this design.  We can still estimate design-variances because the number of first-stage units is 15, the number of sample tracts.  See Textbook 9.2.1
 
-```{r include=FALSE}
-#Create data to input into BW3stagePPSe function
-elem.frame <- samdat %>%
-  mutate(adults = `Tol_18-44` + `Tol_45-64` + `Tol_65+`) %>%
-  mutate(pijk = q/adults)
-
-#Expand SSU selection df to element level (adults only)
-elem.sample <- as.data.frame(lapply(elem.frame, rep, 29)) %>%
-  arrange(BlockGroup)
-
-elem.sample <-elem.sample %>% 
-  group_by(BlockGroup) %>% 
-  mutate(count = row_number(BlockGroup))
-
-elem.sample <-elem.sample %>% 
-  mutate(y = case_when(
-    count < 15 ~ 0,
-    count > 14 ~ 1
-  ))
-
-table(elem.sample$BlockGroup, elem.sample$y)
-
-#Get rid of extra cases (some SSUs will have 28 and some will have 29)
-elem.sample <- elem.sample[-c(29,58,87,116,145,174,203), ]
-
-table(elem.sample$BlockGroup)
-table(elem.sample$BlockGroup, elem.sample$y)
-```
-
-
-```{r include=FALSE}
-# #Setup for the BW3stagePPSe function
-# 
-# # extract pop counts of SSUs for PSUs in sample
-# Ni.sam <- table(samclus$Tract)
-# 
-# # extract pop counts for PSUs in sample
-# sel.tract<- SF_Tract %>%
-#       filter(Tract %in% samdat$Tract)
-# 
-# sel.tract <- sel.tract %>%
-#   mutate(adults = `Tol_18-44` + `Tol_45-64` + `Tol_65+`)
-# 
-# Qi.sam <- sel.tract$adults
-# 
-# # extract pop counts for SSUs in sample
-# samdat <- samdat %>%
-#   mutate(adults = `Tol_18-44` + `Tol_45-64` + `Tol_65+`)
-# 
-# Qij.sam <- samdat$adults
-# 
-# # compute full sample weight and wts for PSUs and SSUs
-# wt <- 1 / elem.sample$pi1 / elem.sample$pi2 / elem.sample$pijk
-# w1i <- 1 / elem.sample$pi1
-# w2ij <- 1 / elem.sample$pi1 / elem.sample$pi2
-# elem.sample2 <- data.frame(psuID = elem.sample$Tract, ssuID = elem.sample$BlockGroup,
-#                      w1i = w1i, w2ij = w2ij, w = wt, y = elem.sample$y)
-# 
-# # call fcn to compute variance component estimates
-# 
-# wtdvar <- function(x, w){
-#   xbarw <- sum(w*x) / sum(w)
-#   varw <- sum(w * (x-xbarw)^2) / sum(w)
-#   varw
-# }
-# 
-# BW3stagePPSe(dat=elem.sample2, v="y", Ni=Ni.sam, Qi=Qi.sam, Qij=Qij.sam, m)
-```
-
-```{r include=FALSE}
-
-#Setup for the BW2stagePPSe function
-
-# extract pop counts for SSUs (AKA PSUs) in sample
-samdat <- samdat %>%
-  mutate(adults = `Tol_18-44` + `Tol_45-64` + `Tol_65+`)
-
-Ni <- samdat$adults
-
-#other inputs
-ni <- table(elem.sample$BlockGroup)
-wt <- 1 / elem.sample$pi1 / elem.sample$pi2 / elem.sample$pijk
-pp <- 1 / samdat$pi1 / samdat$pi2
-
-BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp)
-
-
-```
-
 # Variance Estimation
-
+# Appendix
 # Maps
 
-```{r fig.cap="Map of Prince George's County, MD Tracts and Block Groups", out.width = "90%", fig.align='center', message=FALSE, echo=FALSE}
-
-include_graphics(img1_path) 
-
-```
-```{r fig.cap="Map of Sampled Block Groups in Prince George's County, MD", out.width = "90%", fig.align='center', message=FALSE, echo=FALSE}
-
-
-include_graphics(img2_path) 
-
-
-```
-
-# Appendix
