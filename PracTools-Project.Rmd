@@ -264,9 +264,12 @@ result <- data.frame (
 
 result$name[[15]] <- substr(result$name[[15]], start = 1, stop = 32)
 
+result$name <- str_replace(result$name, "Block Group", "BG")
+result$name <- str_replace(result$name, "Census Tract", "Tract")
+
 knitr::kable(result, col.names = c("NO.","Selected Block Group","Total Units","Total Households","Domain 1","Domain 2","Domain 3","Workload"),caption = 'Sample Result')
 ```
-A map of sampled block groups is shown in Figure 2, with the selected block groups displayed in red. 
+A map of sampled block groups is shown in Figure 2, with the 15 selected block groups displayed in red. 
 
 ```{r fig.cap="Map of Sampled Block Groups in Prince George's County, MD", out.width = "75%", fig.align='center', message=FALSE, echo=FALSE}
 
@@ -274,12 +277,12 @@ img2_path <- "images/PG.select_new.map.png"
 
 include_graphics(img2_path) 
 
-
 ```
 
 ## Selection Probabilities of Units
 
-```{r}
+```{r echo = FALSE}
+
 # summarize sel probs and wts
 weights <- rbind.data.frame (
 unname(summary(probi_1)),
@@ -289,11 +292,47 @@ unname(1/summary(probi_2)))
 
 weights<-cbind(c("pi_i","pi_ij","1/pi_i","1/pi_ij"),weights)
 
-knitr::kable(weights, col.names = c(" ","Min","1st Quantile","Median","Mean","3st Quantile","Max"),
+knitr::kable(weights, col.names = c(" ","Min","1st Quantile","Median","Mean","3rd Quantile","Max"),
              caption = 'Selection Probability and Weights')
 ```
 
-## Element Level Selection of Persons 
+## Element Level Selection of Persons
+
+This sample design calls for persons to be directly sampled using simple random sampling from within block groups at the third stage of selection. This assumes that there are block group level rosters of adult residents from which a sample of persons can be drawn. The sampling rate will differ within each selected SSU because the population size of each SSU is different. The element level selection probability within each block group was calculated by dividing q, the desired workload in each block group, by the total number of adults in each block group. Note that the total number of adults in each block group was used, rather than the total number of persons, due to the fact that individuals under the age of 18 are ineligible for this survey. 
+
+```{r include=FALSE}
+
+#Person level sampling rate and selection probability
+
+samdat <- samdat %>%
+  mutate(adults = `Tol_18-44` + `Tol_45-64` + `Tol_65+`) %>%
+  mutate(pijk = q/adults) %>%
+  mutate(person.rate = 1/pijk)
+```
+
+The sampling rate for each block group is calculated by taking the inverse of the element level probability of selection for each block group. The total number of adults, element level probability of selection, and element level sampling rate are shown below for each of the 15 selected block groups. 
+
+```{r echo = FALSE}
+
+element.probs <- data.frame (
+  number=c(1:15),
+  NAME = substr(samdat$NAME, start = 1, stop = 35),
+  adults = samdat$adults, 
+  pijk = samdat$pijk,
+  person.rate = samdat$person.rate)
+
+element.probs$NAME[[15]] <- substr(element.probs$NAME[[15]], start = 1, stop = 32)
+
+element.probs$NAME <- str_replace(element.probs$NAME, "Block Group", "BG")
+element.probs$NAME <- str_replace(element.probs$NAME, "Census Tract", "Tract")
+
+knitr::kable(element.probs, digits = 3, col.names = c("NO.","Selected Block Group","Total Adults","Element Selection Probability","Element Sampling Rate"),
+             caption = 'Person Level Selection Probabilities and Sampling Rates')
+
+```
+Block group 1 in tract 8072 has the largest sampling rate because it has the largest adult population of all the sampled block groups, while block group 2 in tract 8036.02 has the smallest sampling rate due to its small adult population. Note that the element level sampling rates are not round numbers. This means that a fractional interval will need to be utilized during the element level sample selection to ensure that the correct sampling rate is used in each block group and targeted number of respondents per block group is achieved. Since the targeted workload per SSU is also not a round number ($\bar{\bar{q}}\approx 28.5333$), some SSUs will have 28 respondents, while others will have 29 respondents.  
+
+If a roster of adults who live within each selected block group is not available, this design would have to be modified to include a fourth level of selection. This would involve selecting households within block group at the third level, using either a preexisting household listing, or having survey staff create one for each of the selected block groups. Once households were selected, one adult would be randomly selected from among the adult members of the selected household for the fourth level of selection.  
 
 # Precision and Variance Estimation
 
@@ -301,14 +340,12 @@ knitr::kable(weights, col.names = c(" ","Min","1st Quantile","Median","Mean","3s
 
 The fact that only 1 BG is selected per tract might raise the question of whether variances can be estimated with this design.  We can still estimate design-variances because the number of first-stage units is 15, the number of sample tracts.  See Textbook 9.2.1
 
+
 ```{r include=FALSE}
-#Create data to input into BW3stagePPSe function
-elem.frame <- samdat %>%
-  mutate(adults = `Tol_18-44` + `Tol_45-64` + `Tol_65+`) %>%
-  mutate(pijk = q/adults)
+#Create element level data to input into BW3stagePPSe function
 
 #Expand SSU selection df to element level (adults only)
-elem.sample <- as.data.frame(lapply(elem.frame, rep, 29)) %>%
+elem.sample <- as.data.frame(lapply(samdat, rep, 29)) %>%
   arrange(BlockGroup)
 
 elem.sample <-elem.sample %>% 
@@ -408,7 +445,7 @@ The goal of this study is to measure civic awareness within three age domains, s
 # Maps
 
 ## Map 1: Prince George's County, MD Tracts and Block Groups
-```{r out.width = "85%", fig.align='center', message=FALSE, echo=FALSE}
+```{r out.width = "75%", fig.align='center', message=FALSE, echo=FALSE}
 
 include_graphics(img1_path) 
 
@@ -416,11 +453,9 @@ include_graphics(img1_path)
 
 ## Map 2: Sampled Block Groups in Prince George's County, MD
 
-```{r out.width = "85%", fig.align='center', message=FALSE, echo=FALSE}
-
+```{r out.width = "75%", fig.align='center', message=FALSE, echo=FALSE}
 
 include_graphics(img2_path) 
-
 
 ```
 
@@ -428,23 +463,56 @@ include_graphics(img2_path)
 
 ## Codebook for Sample Frame and Sample File
 
-Chendi will add: 
-
-• Codebook of frame and sample ﬁles, i.e. a list of the variables on the text ﬁles and a description of each variable
+CHENDI will add: Codebook of frame and sample ﬁles, i.e. a list of the variables on the text ﬁles and a description of each variable
 
 
 ## Sample Listing with Selection Probabilities
 
-Chendi will add: 
+```{r echo = FALSE}
 
-• Listing of the sample PSUs and sample SSUs with their selection probabilities and census data. On each sample SSU, list the sampling rate you will use to select persons in each domain.
+SF_Tract$adult <- SF_Tract$`Tol_18-44` + SF_Tract$`Tol_45-64` + SF_Tract$`Tol_65+`
 
-In all we need these deliverables:
+sel.tract<- SF_Tract %>%
+    filter(Tract %in% samdat$Tract) %>%
+    select(Tract, NAME, TotPerson, adult, `Tol_18-44`, `Tol_45-64`, `Tol_65+`, Si) %>%
+    arrange(Tract)
 
-The deliverables for the project will be
+samdat <- samdat %>% 
+    arrange(Tract)
 
-1. A sampling report (details of the report below) [ﬁlename: REPORT_GROUPNAME.pdf];
+sel.tract$pi1 <- samdat$pi1
 
-2. Text ﬁles giving the units used for the area frame and relevant census counts and measures of size [ﬁlename: FRAME#_GROUPNAME.pdf]; and
+sel.tract$NAME <- substr(sel.tract$NAME, start = 1, stop = 20)
+sel.tract$NAME[[15]] <- substr(sel.tract$NAME[[15]], start = 1, stop = 17)
 
-3. Text ﬁle for the selected sample along with relevant census counts, measures of size, selection probabilities, and weights [ﬁlename: SAMPLE_GROUPNAME.pdf]
+sel.tract<- subset(sel.tract, select = -c(Tract))
+
+knitr::kable(sel.tract, digits = 3, col.names = c("Selected Tract","Total Population", "Total Adults","Total Aged 18-44","Total Aged 45-64", "Total Aged 65+", "Composite MOS", "1st Stage Selection Probability"), caption = 'Sampled PSUs with Selection Probabilities')
+
+```
+
+```{r echo = FALSE}
+
+ssu.table <- data.frame (
+  NAME = substr(samdat$NAME, start = 1, stop = 35),
+  TotPerson = samdat$TotPerson,
+  adults = samdat$adults, 
+  young = samdat$`Tol_18-44`,
+  mid = samdat$`Tol_45-64`,
+  old = samdat$`Tol_65+`,
+  c.mos = samdat$Si,
+  pi2 = samdat$pi2,
+  person.rate = samdat$person.rate)
+
+ssu.table$NAME[[15]] <- substr(ssu.table$NAME[[15]], start = 1, stop = 32)
+
+ssu.table$NAME <- str_replace(ssu.table$NAME, "Block Group", "BG")
+ssu.table$NAME <- str_replace(ssu.table$NAME, "Census Tract", "Tract")
+
+
+knitr::kable(ssu.table, digits = 3, col.names = c("Selected BG","Total Population", "Total Adults","Total Aged 18-44","Total Aged 45-64", "Total Aged 65+", "Composite MOS", "2nd Stage Selection Probability", "Element Sampling Rate"), caption = 'Sampled SSUs with Selection Probabilities')
+
+```
+
+
+
