@@ -427,11 +427,11 @@ The inputs for the BW2stagePPSe function are:
 
 4. psuID: the block group ID
 
-5. w: the overall sample weight. This was calculated by multiplying the inverse of the 1st and 2nd stage selection probabilities (from the original 3 stage design) with the inverse of the element level selection probability for each SSU (displayed above in Table 6). 
+5. w: the overall sample weight. This was calculated by multiplying the inverse of the 1st and 2nd stage selection probabilities (for tract and block group from the original 3 stage design) with the inverse of the element level selection probability for each SSU (displayed above in Table 6). 
 
 6. m: the number of sampled PSUs, which is 15
 
-7. pp: a vector of PSU selection probabilities. These were calculated by multiplying the 1st and 2nd stage selection probabilities from the original 3-stage design.
+7. pp: a vector of PSU selection probabilities. These were calculated by multiplying the 1st and 2nd stage (tract and block group) selection probabilities from the original 3-stage design.
 
 ```{r include=FALSE}
 
@@ -451,10 +451,23 @@ pp <- samdat$pi1*samdat$pi2
 BW <- rbind(BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp),
             BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y.rare, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp))
 
-round(BW,4)
-
 ```
 
+```{r echo = FALSE}
+BW <- as.data.frame(BW)
+
+BW2 <- data.frame(vars = c("Est. 50% Correct Responses", "Est. 5% Correct Responses"), 
+        vpsu = BW$Vpsu,
+        vssu = BW$Vssu,
+        B = BW$B,
+        W = BW$W,
+        k = BW$k,
+        delta = BW$delta)
+
+knitr::kable(BW2, digits = 3, col.names = c("Variable","PSU Variance","SSU Variance","$B^2$","$W^2$", "k", "Delta"),
+             caption = 'Anticipated Precision for Proposed Sample Design')
+
+```
 ## Variance Estimation
 
 # Conclusion
