@@ -338,8 +338,11 @@ If a roster of adults who live within each selected block group is not available
 
 ## Anticipated Precision
 
-The fact that only 1 BG is selected per tract might raise the question of whether variances can be estimated with this design.  We can still estimate design-variances because the number of first-stage units is 15, the number of sample tracts.  See Textbook 9.2.1
+It is possible to calculate the anticipated precision of the estimates that will be made with this sample by creating element level dummy data. This dummy data can then be analyzed using the BW2stagePPSe function available in the PracTools R package to calculate the variances from each of the stages of sample selection.
 
+Dummy data was created by expanding the data frame of selected SSUs to include a row for each element (person) that will ultimately be selected. The expanded element level data file had 428 total observations, with 28 or 29 elements in each selected block group. After creating the element level file, dummy analysis variables were created for the anticipated precision analysis. The dummy analysis varaibles were in the form of a binary response, with 1 indicating that the respondent correctly answered a question related to Maryland civic awareness, and 0 indicating the question was incorrectly answered. 
+
+Two synthetic dummy analysis variables were created. The first dummy variable had approximately 50% of cases responding to the civic awareness question correctly, while the second dummy variable had about 5% of cases answering the civic awareness question correctly. The dummy data was assigned at these rates within SSUs, rather than randomly assigned throughout the sample. This means that in any given SSU, about 50% of cases answered correctly for the first dummy variable, and 5% of cases answered correctly for the second. Calculated anticipated precision for both of these variables will give a good idea of the possible range of variances in the final achieved sample, since we do not currently have projections of the proportion of the Prince George's County population that will be able to answer civic awareness questions correctly.
 
 ```{r include=FALSE}
 #Create element level data to input into BW3stagePPSe function
@@ -412,6 +415,24 @@ table(elem.sample$BlockGroup, elem.sample$y.rare)
 # BW3stagePPSe(dat=elem.sample2, v="y", Ni=Ni.sam, Qi=Qi.sam, Qij=Qij.sam, m)
 ```
 
+Since this sample design includes 15 first-stage clusters, but only one second-stage cluster within each first stage cluster, variances cannot be computed for the first and second stage clusters. Therefore, for the purposes of variance estimation, we will treat this as a two-stage sample, with the first stage being a PPS selection of 15 block groups and the second stage being a simple random selection of persons within block groups. Therefore, we used the BW2stagePPSe function, which assumes a PPS selection at the first stage and an SRS selection at the second stage. 
+
+The inputs for the BW2stagePPSe function are: 
+
+1. Ni: the total number of adults within each selected block group
+
+2. ni: the total number of elements (persons) sampled within each selected block group
+
+3. X: the vector of data that should be analyzed. The BW2stagePPSe function was run twice on the two synthetic dummy variables that were created.
+
+4. psuID: the block group ID
+
+5. w: the overall sample weight. This was calculated by multiplying the inverse of the 1st and 2nd stage selection probabilities (from the original 3 stage design) with the inverse of the element level selection probability for each SSU (displayed above in Table 6). 
+
+6. m: the number of sampled PSUs, which is 15
+
+7. pp: a vector of PSU selection probabilities. These were calculated by multiplying the 1st and 2nd stage selection probabilities from the original 3-stage design.
+
 ```{r include=FALSE}
 
 #Setup for the BW2stagePPSe function
@@ -425,7 +446,7 @@ Ni <- samdat$adults
 #other inputs
 ni <- table(elem.sample$BlockGroup)
 wt <- 1 / elem.sample$pi1 / elem.sample$pi2 / elem.sample$pijk
-pp <- 1 / samdat$pi1 / samdat$pi2
+pp <- samdat$pi1*samdat$pi2
 
 BW <- rbind(BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp),
             BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y.rare, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp))
