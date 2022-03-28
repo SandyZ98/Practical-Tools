@@ -1,7 +1,7 @@
 ---
 title: "Practical Tools Sampling Project"
-author: "Stacey Frank & Chendi Zhao"
-date: "`r Sys.Date()`"
+author: "Team Sarndal: Stacey Frank & Chendi Zhao"
+date: "March 29, 2022"
 output:
   pdf_document:
     toc: yes
@@ -33,6 +33,7 @@ library(png)
 options(tigris_class ="sf")
 options(tigris_use_cache =T)
 ```
+
 
 # Introduction
 
@@ -120,14 +121,14 @@ The target population for this study is the adult (18+) non-institutionalized po
 
 The primary goal of this sample design is to allow the estimation of the proportion of the Prince George's County, Maryland population that has certain markers of civic awareness. The client desires to conduct this analysis within three age groups: people aged 18-44, people aged 45-64, and people aged 65 or over. 
 
-The desired total sample size is 300 persons which was split equally among the three age groups.To achieve the desired sample size - which reflects completed questionnaires - one needs to account for non-response. The response rates for the three age groups are anticipated to be 0.60, 0.70 and 0.85, respectively. After adjusting to account for the non-response, the new desired total sample size is 428, with 167, 153, and  118 persons in each age group. Thus, the new overall sampling rate $f$ becomes 0.00065, calculated by $428/657421$. The sampling rate for each age group, $f_d$ can also be obtained using the same formula. The population, desired number of completed interviews, desired sample size, and sampling fraction per age group is listed in Table 1.
+The desired total sample size is 300 persons which was split equally among the three age groups.To achieve the desired sample size - which reflects completed questionnaires - one needs to account for non-response. The response rates for the three age groups are anticipated to be 0.60, 0.70 and 0.85, respectively. After adjusting to account for the non-response, the new desired total sample size is 428, with 167, 153, and  118 persons in each age group. Thus, the new overall sampling rate $f$ becomes 0.00065, calculated by $428/657421$. The sampling rate for each age group, $f_d$ can also be obtained using the same formula. The population, desired number of completed interviews, desired sample size, and sampling fraction per age group is listed in the table below.
 
 ```{r echo = FALSE}
 age.tgt <- data.frame (
   age.grp  = c("18-44 years", "45-64 years", "65+ years", "Total"),
   total=c(350725,225183,81513,657421),
   n = c(100, 100, 100, 300),
-  rr=c(0.6,0.7,0.8," "),
+  rr=c(0.6,0.7,0.8, ""),
   new_n=c(167,153,118,428),
   f=c(0.00048,0.00064,0.00145,0.00065))
 
@@ -139,13 +140,9 @@ knitr::kable(age.tgt, col.names = c("Age Group","Population","n","Expected Respo
  
 Given that the goal of this study is to measure civic awareness within these three age domains, a composite measure of size was used in sampling that accounted for the prevalence of persons within these age groups within each cluster. Using this method of selection should ensure that a targeted number of respondents per age group will be achieved in the final sample. Secondary goals of this sample are to achieve these domain sample sizes while also achieving a self-weighting sample within the three age groups and also creating an equal interviewer workload within each PSU. The equal workload for each tract can be calculated by $\bar{\bar{q}}=428/(15*1)\approx 28.5333$.
  
-As specified by the client, this sample design uses census tracts as PSUs, block groups as SSUs, and persons as elements. In total, there are 218 tracts and 523 block groups in the sampling frame. We will use the composite measure of size (MOS) method to meet the sampling goals. This method can also provide PSU selection probabilities that give “credit” for containing domains that are relatively rare in the population. To be specific, a three-stage cluster sample was drawn, with systematic sampling with probabilities proportional to size in PSUs and SSUs,and a simple random sample of persons within each block group.
+As specified by the client, this sample design uses census tracts as PSUs, block groups as SSUs, and persons as elements. We will use the composite measure of size (MOS) method to meet the sampling goals. This method can also provide PSU selection probabilities that give “credit” for containing domains that are relatively rare in the population. To be specific, a three-stage cluster sample was drawn, with systematic sampling with probabilities proportional to size in PSUs and SSUs,and a simple random sample of persons within each block group.
 
-
-Description of sample frame (units, data available, data source)
-Descriptive statistics for frame
-
-   Chendi: I put the descriptives in Table 1 above...
+The population data that was used for sample selection was pulled from the U.S. Census Bureau's website using the TidyCensus R package. The Census Bureau makes available summary-level tract and block-group data, which gives aggregate totals of the number of households and persons in each tract and block group, as well as a breakdown of the number of persons in each of the three age groups of interest. In total, there are 218 tracts and 523 block groups in the sampling frame. The map in Figure 1 shows all of the tracts (outlined in blue) and block groups (outlined in black) in Prince George's County, MD.
 
 ```{r fig.cap="Map of Prince George's County, MD Tracts and Block Groups", out.width = "75%", fig.align='center', message=FALSE, echo=FALSE}
 
@@ -154,28 +151,58 @@ img1_path <- "images/PG.map.png"
 include_graphics(img1_path) 
 ```
 
-Discuss whether a design that uses the same response rate for all persons could be used to achieve the sample size targets for each age group. (Pros and Cons)
-
 # Sample Selection
 
 ## Composite Measure of Size and Selection Probability
 
-The composite MOS for each $PSU_{ij}$, $S_i=\sum_{j\epsilon U_i}S_{ij}=\sum_df_dQ_i(d)\\$, where $S_{ij}$ is the composite MOS for $SSU_j$ in $PSU_i$ and $Q_i$ is defined as number of elements in PSU i that are in domain d. Summing the $S_i$ will give us the total composite MOS, which should be equal to the total desired sample size, 428.
+The composite MOS for each $PSU_{ij}$, $S_i=\sum_{j\epsilon U_i}S_{ij}=\sum_df_dQ_i(d)$, where $S_{ij}$ is the composite MOS for $SSU_j$ in $PSU_i$ and $Q_i$ is defined as number of elements in PSU i that are in domain d. Summing the $S_i$ will give us the total composite MOS, which should be equal to the total desired sample size, 428.
 
-Given that both PSUs and SSUs are sampled with probabilities proportional to the composite MOS, the selection probability of $SSU_{ij}$ is defined as $\pi_i\pi_{k|ij}=mnS_{ij}/S$, where m is the number of sample PSUs and n is the number of sample SSUs in each PSU.Then, we are able to calculate the desired number to be selected from domain d in each SSU with $q_{ij}^*(d)=\bar{\bar{q}}f_d/S_{ij}$. It is worth to mentioning that $\bar{\bar{q}}$ is constant in each sampling stage. 
+Given that both PSUs and SSUs are sampled with probabilities proportional to the composite MOS, the selection probability of $SSU_{ij}$ is defined as $\pi_i\pi_{k|ij}=mnS_{ij}/S$, where m is the number of sample PSUs and n is the number of sample SSUs in each PSU.Then, we are able to calculate the desired number to be selected from domain d in each SSU with $q_{ij}^*(d)=\bar{\bar{q}}f_d/S_{ij}$. It is worth to mentioning that $\bar{\bar{q}}$ is constant in each sampling stage.
+
+The goal of this sample is to achieve an equal number of interviews within each of the three age groups of interest, meaning that the percentage of cases in each age group in the final sample should be about 33%. However, this does not match the distribution of age groups in the population. Among the adult population of Prince George's County, MD, about 53% are aged 18-44 and 12% are aged 65 or older. Only the population proportion of people aged 45-64 is approximately equivalent to the desired sample proportion for this age group. In essence, this means that people in the youngest age group need to be under-sampled, while people in the oldest age group need to be over-sampled. 
+
+```{r include = FALSE}
+#RMD won't knit this chunk for some weird reason (even though this code runs fine when not knitting) so I'm doing some janky hard coding here 
+# tot.18.44 <- sum(SF_Tract$`Tol_18-44`)
+# tot.45.64 <- sum(SF_Tract$`Tol_45-64`)
+# tot.65plus <- sum(SF_Tract$`Tol_65+`)
+# 
+# prop.18.44 <- tot.18.44/(tot.18.44+tot.45.64+tot.65plus)
+# prop.45.64 <- tot.45.64/(tot.18.44+tot.45.64+tot.65plus)
+# prop.65plus <- tot.65plus/(tot.18.44+tot.45.64+tot.65plus)
+
+age.dist <- data.frame (
+  age.grp  = c("18-44 years", "45-64 years", "65+ years"),
+  pop.prop =c(.533486,.3425248,.123989),
+  samp.prop = c(.333, .333, .333))
+
+```
+
+
+```{r echo = FALSE}
+
+knitr::kable(age.dist, digits=3, col.names = c("Age Group","Population Proportion","Desired Sample Proportion"), caption = 'Age Distribution in Population and Sample')
+```
+
+Using the composite MOS allows researchers a greater measure of control over the probable age distribution in the final sample by assigning larger selection probabilities to clusters that contain a disproportionate number of units that are members of a domain of interest. This means that in the current sample, tracts and block groups that contain a disproportionate number of people aged 65 or older are given a larger measure of size than their unadjusted population proportion would indicate.
+
+Given the lack of balance in the age distribution of Prince George's County residents, a sample that was drawn with probabilities proportional to overall population size without accounting for age would be unlikely to produce an equal distribution of respondents across the three age groups in the final sample. The primary advantage of sample design with the composite measure of size is that it allows for self-weighting samples from each of the domains of interest. This means that variances of the final survey estimates will be smaller, because there will not be large differences in the sizes of weights across the sample, which would contribute to the variance of the estimates. 
 
 ## Quality Control Checks
 
 After obtaining the information above, we did quality control checks to ensure that the desired sample size is possible for each SSU.The four criterion include:
 
-(1).$q^*_{ij}(d)\leq Q_{ij}(d)$ for every SSU and domain,$q^*_{ij}(d)$ where is the expected number of sample persons in $SSU_{ij}$ from domain d. 
-(2).$\bar{\bar{q}}\leq Q_{ij}$ for each SSU
-(3).$\bar{n}\bar{\bar{q}}\leq Q_i$ for each PSU
-(4).$\pi_i$,$\pi_{j|i}$,$\pi_{k|ij}$ less or equal to 1
+(1). $q^*_{ij}(d)\leq Q_{ij}(d)$ for every SSU and domain,$q^*_{ij}(d)$ where is the expected number of sample persons in $SSU_{ij}$ from domain d. 
 
-In the current sample frame, seven block groups listed in Table 2 were detected to be undersized. Based on the map of Prince George's County, these unqualified areas include an air base, golf course, park land, and a university campus. Therefore, we combined them with the nearest block group within the tract to ensure each cluster met the minimum criteria for selection. 
+(2). $\bar{\bar{q}}\leq Q_{ij}$ for each SSU.
 
-The first three block groups in Table 2 are the only SSUs within that tract. After combing them, the new block group still had a desired sample size larger than the actual population in domain 3. We decided to keep the new group in the frame, since there were no other block groups within the tract that it could be combined with. If this new block group is sampled, we would sample more persons in domain 3 in the next sampled block group to achieve the expected sample size. Block Group 240338024082 and 240338035192 were combined with 240338024082 and 240338035191, respectively. Block Group 240338072002 and 240338072003 are a university campus so there are mainly young adults living there. If we combine them together, there will still be insufficient sample for domain 2 and 3. Also, the population will be very disproportionately contributed across the domains. Therefore, we combined 240338072002 with 240338072001 and 240338072003 with 240338072004.
+(3). $\bar{n}\bar{\bar{q}}\leq Q_i$ for each PSU.
+
+(4). $\pi_i$,$\pi_{j|i}$,$\pi_{k|ij}$ less or equal to 1.
+
+In the current sample frame, the seven block groups listed in the below table were detected to be undersized. Based on the map of Prince George's County, these unqualified areas include an air base, golf course, park land, and a university campus. Therefore, we combined them with the nearest block group within the tract to ensure each cluster met the minimum criteria for selection. 
+
+The first three block groups in Table 3 above are the only SSUs within that tract. After combing them, the new block group still had a desired sample size larger than the actual population in domain 3. We decided to keep the new group in the frame, since there were no other block groups within the tract that it could be combined with. If this new block group is sampled, we would sample more persons in domain 3 in the next sampled block group to achieve the expected sample size. Block Group 240338024082 and 240338035192 were combined with 240338024082 and 240338035191, respectively. Block Group 240338072002 and 240338072003 are a university campus so there are mainly young adults living there. If we combine them together, there will still be insufficient sample for domain 2 and 3. Also, the population will be very disproportionately contributed across the domains. Therefore, we combined 240338072002 with 240338072001 and 240338072003 with 240338072004.
 
 ```{r echo = FALSE}
 undersizebg <- data.frame (
@@ -188,7 +215,6 @@ undersizebg <- data.frame (
 
 knitr::kable(undersizebg, col.names = c("NO.","Block Group","Total Units","Domain 1","Domain 2","Domain 3"),caption = 'Unqualified Block Groups')
 ```
-
 
 ```{r include=FALSE}
 set.seed(-741881304)
@@ -222,13 +248,13 @@ samdat <- getdata(samclus,s)
 samdat <- rename(samdat, "pi2"="Prob")
 ```
 
-## Selected units and characteristics of each
-The sampled block groups are listed in Table 3 with the information of household and population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample block groups are selected, the sampling need to be done using fixed rates not fixed sample sizes.  
+## Selected Units and Their Characteristics
+The sampled block groups are listed in the below table with the information for households and overall population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample block groups are selected, the sampling needs to be done using fixed rates not fixed sample sizes.  
 
 ```{r}
 result <- data.frame (
   number=c(1:15),
-  name=samdat$NAME,
+  name=substr(samdat$NAME, start = 1, stop = 35),
   TotalPopu=samdat$TotPerson,
   TotalHH=samdat$TotHH,
   d1=samdat$`Tol_18-44`,
@@ -236,8 +262,11 @@ result <- data.frame (
   d3=samdat$`Tol_65+`,
   workload=rep(28.53,15))
 
-knitr::kable(result, col.names = c("NO.","Selected Block Group","Total Units","Total Household","Domain 1","Domain 2","Domain 3","Workload"),caption = 'Sample Result')
+result$name[[15]] <- substr(result$name[[15]], start = 1, stop = 32)
+
+knitr::kable(result, col.names = c("NO.","Selected Block Group","Total Units","Total Households","Domain 1","Domain 2","Domain 3","Workload"),caption = 'Sample Result')
 ```
+A map of sampled block groups is shown in Figure 2, with the selected block groups displayed in red. 
 
 ```{r fig.cap="Map of Sampled Block Groups in Prince George's County, MD", out.width = "75%", fig.align='center', message=FALSE, echo=FALSE}
 
@@ -248,7 +277,8 @@ include_graphics(img2_path)
 
 ```
 
-## Selection Probabilities of units at each stage of selection
+## Selection Probabilities of Units
+
 ```{r}
 # summarize sel probs and wts
 weights <- rbind.data.frame (
@@ -263,13 +293,11 @@ knitr::kable(weights, col.names = c(" ","Min","1st Quantile","Median","Mean","3s
              caption = 'Selection Probability and Weights')
 ```
 
-.....
+## Element Level Selection of Persons 
 
-## Description of how persons should be selected from area listings
+# Precision and Variance Estimation
 
-
-
-# Anticipated Precision
+## Anticipated Precision
 
 The fact that only 1 BG is selected per tract might raise the question of whether variances can be estimated with this design.  We can still estimate design-variances because the number of first-stage units is 15, the number of sample tracts.  See Textbook 9.2.1
 
@@ -369,16 +397,26 @@ round(BW,4)
 
 ```
 
-# Variance Estimation
+## Variance Estimation
+
+# Conclusion
+
+This report outlines our proposed sample design and sample draw of of census tracts, block groups, and persons from Prince George's County, Maryland for a survey of civic awareness among Prince George's County adults. This sample was designed to allow for estimates of the proportion of persons in different age groups who have civic awareness. A three-stage cluster sample was drawn, with probability proportional to size selection of 15 tracts, probability proportional to size selection of 1 block group within each tract, and a simple random sample of persons within each SSU. 
+
+The goal of this study is to measure civic awareness within three age domains, so a composite measure of size for tracts and block groups was used in sampling to accounted for the prevalence of persons in each age groups within each cluster.Using this method of selection should ensure that the target number of interviews, 100 within each age group, is achieved achieved in the final sample. This sample was also designed to be self-weighting within the three age groups and also to have an equal interviewer workload within each PSU. Anticipated precision and a suggested approach to variance calculation for the final sample ar also discussed.
 
 # Maps
 
-```{r fig.cap="Map of Prince George's County, MD Tracts and Block Groups", out.width = "90%", fig.align='center', message=FALSE, echo=FALSE}
+## Map 1: Prince George's County, MD Tracts and Block Groups
+```{r out.width = "85%", fig.align='center', message=FALSE, echo=FALSE}
 
 include_graphics(img1_path) 
 
 ```
-```{r fig.cap="Map of Sampled Block Groups in Prince George's County, MD", out.width = "90%", fig.align='center', message=FALSE, echo=FALSE}
+
+## Map 2: Sampled Block Groups in Prince George's County, MD
+
+```{r out.width = "85%", fig.align='center', message=FALSE, echo=FALSE}
 
 
 include_graphics(img2_path) 
@@ -387,3 +425,26 @@ include_graphics(img2_path)
 ```
 
 # Appendix
+
+## Codebook for Sample Frame and Sample File
+
+Chendi will add: 
+
+• Codebook of frame and sample ﬁles, i.e. a list of the variables on the text ﬁles and a description of each variable
+
+
+## Sample Listing with Selection Probabilities
+
+Chendi will add: 
+
+• Listing of the sample PSUs and sample SSUs with their selection probabilities and census data. On each sample SSU, list the sampling rate you will use to select persons in each domain.
+
+In all we need these deliverables:
+
+The deliverables for the project will be
+
+1. A sampling report (details of the report below) [ﬁlename: REPORT_GROUPNAME.pdf];
+
+2. Text ﬁles giving the units used for the area frame and relevant census counts and measures of size [ﬁlename: FRAME#_GROUPNAME.pdf]; and
+
+3. Text ﬁle for the selected sample along with relevant census counts, measures of size, selection probabilities, and weights [ﬁlename: SAMPLE_GROUPNAME.pdf]
