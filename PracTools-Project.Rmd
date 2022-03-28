@@ -289,17 +289,22 @@ elem.sample <-elem.sample %>%
 
 elem.sample <-elem.sample %>% 
   mutate(y = case_when(
-    count < 15 ~ 0,
-    count > 14 ~ 1
+    count < 15 ~ 1,
+    count > 14 ~ 0)) %>% 
+  mutate(y.rare = case_when(
+    count < 3 ~ 1,
+    count > 2 ~ 0
   ))
 
 table(elem.sample$BlockGroup, elem.sample$y)
+table(elem.sample$BlockGroup, elem.sample$y.rare)
 
 #Get rid of extra cases (some SSUs will have 28 and some will have 29)
 elem.sample <- elem.sample[-c(29,58,87,116,145,174,203), ]
 
 table(elem.sample$BlockGroup)
 table(elem.sample$BlockGroup, elem.sample$y)
+table(elem.sample$BlockGroup, elem.sample$y.rare)
 ```
 
 
@@ -357,8 +362,10 @@ ni <- table(elem.sample$BlockGroup)
 wt <- 1 / elem.sample$pi1 / elem.sample$pi2 / elem.sample$pijk
 pp <- 1 / samdat$pi1 / samdat$pi2
 
-BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp)
+BW <- rbind(BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp),
+            BW2stagePPSe(Ni=Ni, ni=ni, X=elem.sample$y.rare, psuID = elem.sample$BlockGroup, w = wt, m = 15, pp = pp))
 
+round(BW,4)
 
 ```
 
