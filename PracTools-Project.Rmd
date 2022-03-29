@@ -249,7 +249,7 @@ samdat <- rename(samdat, "pi2"="Prob")
 ```
 
 ## Selected Units and Their Characteristics
-The sampled block groups are listed in the below table with the information for households and overall population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample block groups are selected, the sampling needs to be done using fixed rates not fixed sample sizes.  
+The sampled block groups are listed in the below table with the information for households and overall population in each domain. We noticed that the workloads are not integers, which means that when the samples of persons within a sample block groups are selected, the sampling needs to be done using fixed rates not fixed sample sizes. Take the first sampled block group as an example, there are 581	people in age group 18-24 and the sample size for this group is expected to be 13. In this case, persons in that domain would be sampled at rate 13/581= 0.0224.  
 
 ```{r}
 result <- data.frame (
@@ -257,9 +257,9 @@ result <- data.frame (
   name=substr(samdat$NAME, start = 1, stop = 35),
   TotalPopu=samdat$TotPerson,
   TotalHH=samdat$TotHH,
-  d1=samdat$`Tol_18-44`,
-  d2=samdat$`Tol_45-64`,
-  d3=samdat$`Tol_65+`,
+  d1=round(samdat$`Tol_18-44`*(q*fd_1)/(samdat$Si),1),
+  d2=round(samdat$`Tol_45-64`*(q*fd_2)/(samdat$Si),1),
+  d3=round(samdat$`Tol_65+`*(q*fd_3)/(samdat$Si),1),
   workload=rep(28.53,15))
 
 result$name[[15]] <- substr(result$name[[15]], start = 1, stop = 32)
@@ -285,16 +285,18 @@ include_graphics(img2_path)
 
 # summarize sel probs and wts
 weights <- rbind.data.frame (
-unname(summary(probi_1)),
-unname(summary(probi_2)),
-unname(summary(1/probi_1)),
-unname(1/summary(probi_2)))
+round(unname(summary(probi_1)),4),
+round(unname(summary(probi_2)),4),
+round(unname(summary(1/probi_1)),4),
+round(unname(summary(1/probi_2)),4))
 
 weights<-cbind(c("pi_i","pi_ij","1/pi_i","1/pi_ij"),weights)
 
 knitr::kable(weights, col.names = c(" ","Min","1st Quantile","Median","Mean","3rd Quantile","Max"),
              caption = 'Selection Probability and Weights')
 ```
+
+After combining the undersized block groups, the selection probabilities for tracts and Block Group’s are summarized in Table above.The range of selection probabilities for Tract’s is 0.0235 and 0.2678 while the range of weights for Tract’s is 3.7338 to 42.4787 The range of selection probabilities for Block Group’s is 0.0134 and 0.1357 while the range of weights for Block Group’s is 7.3679 to 74.165.  Since we are excluding any tracts or block groups out of the frame, a self-weighting sample can still be achieved.
 
 ## Element Level Selection of Persons
 
@@ -330,6 +332,7 @@ knitr::kable(element.probs, digits = 3, col.names = c("NO.","Selected Block Grou
              caption = 'Person Level Selection Probabilities and Sampling Rates')
 
 ```
+
 Block group 1 in tract 8072 has the largest sampling rate because it has the largest adult population of all the sampled block groups, while block group 2 in tract 8036.02 has the smallest sampling rate due to its small adult population. Note that the element level sampling rates are not round numbers. This means that a fractional interval will need to be utilized during the element level sample selection to ensure that the correct sampling rate is used in each block group and targeted number of respondents per block group is achieved. Since the targeted workload per SSU is also not a round number ($\bar{\bar{q}}\approx 28.5333$), some SSUs will have 28 respondents, while others will have 29 respondents.  
 
 If a roster of adults who live within each selected block group is not available, this design would have to be modified to include a fourth level of selection. This would involve selecting households within block group at the third level, using either a preexisting household listing, or having survey staff create one for each of the selected block groups. Once households were selected, one adult would be randomly selected from among the adult members of the selected household for the fourth level of selection.  
@@ -547,6 +550,4 @@ ssu.table$NAME <- str_replace(ssu.table$NAME, "Census Tract", "Tract")
 knitr::kable(ssu.table, digits = 3, col.names = c("Selected BG","Total Population", "Total Adults","Total Aged 18-44","Total Aged 45-64", "Total Aged 65+", "Composite MOS", "2nd Stage Selection Probability", "Element Sampling Rate"), caption = 'Sampled SSUs with Selection Probabilities')
 
 ```
-
-
 
