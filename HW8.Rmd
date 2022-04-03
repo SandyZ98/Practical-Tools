@@ -1,0 +1,103 @@
+---
+title: "SURVMETH 745 HW8"
+author: "Stacey Frank & Chendi Zhao"
+date: "3/31/2022"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(PracTools)
+library(tidyverse)
+library(survey)
+library(ggplot2)
+source("http://pcwww.liv.ac.uk/~william/R/crosstab.r")
+```
+
+
+```{r}
+dat<-read.csv("C:/Users/cd_zh/Desktop/nhis2014_paradata.csv")
+names(dat)
+dim(dat)
+```
+The outcome variable "CTSTAT3" provides the number of contact attempts that resulted in noncontact.
+"WTIA_PD" is the base weights.
+
+#1.
+```{r}
+
+table(dat$OUTCOME1,exclude = NULL)
+dat$OUTCOME<-case_when(dat$OUTCOME1==201|dat$OUTCOME1==203~"Response",
+                       dat$OUTCOME1==213|dat$OUTCOME1==215|dat$OUTCOME1==218|dat$OUTCOME1==219~"Nonresponse",
+                       dat$OUTCOME1==299~"Ineligible",
+                       dat$OUTCOME1==216|dat$OUTCOME1==217~"Unknown Eligible",
+                       TRUE~as.character(NA)
+                       )
+
+crosstab(dat, row.vars = "OUTCOME1", col.vars = "OUTCOME", type = "f",addmargins = T)
+```
+
+#2.
+$RR3=I/((I+P)+(R+NC+O)+eU)$
+```{r}
+# I is number of completed cases; U is the number of unknown eligible cases
+I=35823
+U=3397
+#Assume that the share of cases of unknown eligibility who would have been eligible is the same as the share among the cases whose eligibility was determined
+e=8853/(70790-3397)
+RR3<-I/(70790-U+e*U)
+RR3
+```
+#3.
+In each adjustment class b:
+The unknown eligibility adjustment for sample units $s_{b,KN}$ is 
+$a_{1b}= \sum_{i\in{sb}}d_{0i}/\sum_{i\in{sb,KN}}d_{0i}$, where $d_{0i}$ is the base weight
+The final adjusted weight is $a_{1b}*d_{0i}$
+```{r}
+table(dat$CENREG,dat$OUTCOME,exclude = NULL)
+
+dat2<-dat %>%
+  group_by(CENREG, OUTCOME) %>%
+  summarise(base=sum(WTIA_PD))
+w1=sum(dat2$base[1:4])/sum(dat2$base[1:3])
+w2=sum(dat2$base[5:8])/sum(dat2$base[5:7])
+w3=sum(dat2$base[9:12])/sum(dat2$base[9:11])
+w4=sum(dat2$base[13:16])/sum(dat2$base[13:15])
+rbind(w1,w2,w3,w4)
+
+dat3<-dat %>%
+  group_by(CENREG, OUTCOME) %>%
+  summarise(base=WTIA_PD,
+            CTSTAT3)
+dat3$WT_Eligible<-case_when(
+  dat3$CENREG==1&!dat3$OUTCOME=="Unknown Eligible"~dat3$base*w1,
+  dat3$CENREG==2&!dat3$OUTCOME=="Unknown Eligible"~dat3$base*w2,
+  dat3$CENREG==3&!dat3$OUTCOME=="Unknown Eligible"~dat3$base*w3,
+  dat3$CENREG==4&!dat3$OUTCOME=="Unknown Eligible"~dat3$base*w4,
+  dat3$OUTCOME=="Unknown Eligible"~dat3$base*0,
+  TRUE~as.numeric(NA))
+
+dat4<-dat3%>%filter(!OUTCOME=="Unknown Eligible")
+dat4%>%ggplot(aes(base,WT_Eligible,color=factor(CENREG)))+
+  geom_point(alpha=0.2, size=2) +
+  facet_grid(vars(OUTCOME),vars(CENREG))+
+  labs(x="Base weight",
+   y="Unknown Wligibility Adjusted Weight",
+   color="Census Region of Residence")
+```
+#4.
+```{r}
+dat5<-dat%>%filter(OUTCOME=="Nonresponse")
+
+m1=mean(dat5$CTSTAT3,na.rm=T)
+m2=mean(dat5$CTSTAT3*dat5$WTIA_PD,na.rm=T)
+m1;m2
+dat5%>%ggplot(aes(dat5$CTSTAT3,dat5$WTIA_PD))+
+  geom_point()+
+    labs(x="Number of contact attempts that resulted in noncontact",
+   y="Base weight")
+```
+The mean of CTSTAT3 among nonrespondents after using base weight is much larger than the mean without using any weights. The base weight reflects the probability of household selection. Household with a high probability received lower weights. The value of CTSTAT3 of households with low selection probabilities will get inflated a lot (See the plot above). Therefore, the mean after weighting gets much larger.
