@@ -31,9 +31,9 @@ The outcome variable "CTSTAT3" provides the number of contact attempts that resu
 
 table(dat$OUTCOME1,exclude = NULL)
 dat$OUTCOME<-case_when(dat$OUTCOME1==201|dat$OUTCOME1==203~"Response",
-                       dat$OUTCOME1==213|dat$OUTCOME1==215|dat$OUTCOME1==218|dat$OUTCOME1==219~"Nonresponse",
+                       dat$OUTCOME1==213|dat$OUTCOME1==215|dat$OUTCOME1==217|dat$OUTCOME1==218|dat$OUTCOME1==219~"Nonresponse",
                        dat$OUTCOME1==299~"Ineligible",
-                       dat$OUTCOME1==216|dat$OUTCOME1==217~"Unknown Eligible",
+                       dat$OUTCOME1==216~"Unknown Eligible",
                        TRUE~as.character(NA)
                        )
 
@@ -47,7 +47,7 @@ $RR3=I/((I+P)+(R+NC+O)+eU)$
 I=35823
 U=3397
 #Assume that the share of cases of unknown eligibility who would have been eligible is the same as the share among the cases whose eligibility was determined
-e=8853/(70790-3397)
+e=( 12719+45821)/(70790-3397)
 RR3<-I/(70790-U+e*U)
 RR3
 ```
