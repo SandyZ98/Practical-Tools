@@ -44,11 +44,9 @@ crosstab(dat, row.vars = "OUTCOME1", col.vars = "OUTCOME", type = "f",addmargins
 $RR3=I/((I+P)+(R+NC+O)+eU)$
 ```{r}
 # I is number of completed cases; U is the number of unknown eligible cases
-I=35823
-U=3397
 #Assume that the share of cases of unknown eligibility who would have been eligible is the same as the share among the cases whose eligibility was determined
-e=( 12719+45821)/(70790-3397)
-RR3<-I/(70790-U+e*U)
+e=(12719+45821)/(70790-3001)
+RR3<-35823/(70790-8853+e*3001)
 RR3
 ```
 #3.
