@@ -1,7 +1,7 @@
 ---
 title: "SURVMETH 745 HW8"
 author: "Stacey Frank & Chendi Zhao"
-date: "3/31/2022"
+date: "4/4/2022"
 output:
   word_document: default
   pdf_document: default
@@ -18,17 +18,16 @@ source("http://pcwww.liv.ac.uk/~william/R/crosstab.r")
 ```
 
 
-```{r}
-dat<-read.csv("C:/Users/cd_zh/Desktop/nhis2014_paradata.csv")
+```{r include=FALSE}
+dat<-read.csv("nhis2014_paradata.csv")
 names(dat)
 dim(dat)
+
+#The outcome variable "CTSTAT3" provides the number of contact attempts that resulted in noncontact. "WTIA_PD" is the base weights.
 ```
-The outcome variable "CTSTAT3" provides the number of contact attempts that resulted in noncontact.
-"WTIA_PD" is the base weights.
 
-#1.
-```{r}
-
+# Q1.
+```{r include=FALSE}
 table(dat$OUTCOME1,exclude = NULL)
 dat$OUTCOME<-case_when(dat$OUTCOME1==201|dat$OUTCOME1==203~"Response",
                        dat$OUTCOME1==213|dat$OUTCOME1==215|dat$OUTCOME1==217|dat$OUTCOME1==218|dat$OUTCOME1==219~"Nonresponse",
@@ -36,30 +35,46 @@ dat$OUTCOME<-case_when(dat$OUTCOME1==201|dat$OUTCOME1==203~"Response",
                        dat$OUTCOME1==216~"Unknown Eligible",
                        TRUE~as.character(NA)
                        )
+```
 
+
+```{r echo = FALSE}
 crosstab(dat, row.vars = "OUTCOME1", col.vars = "OUTCOME", type = "f",addmargins = T)
 ```
 
-#2.
+# Q2.
+$e=\frac{n-(U+NE)}{n-U}=\frac{I+P+R+NC+O}{I+P+R+NC+NE+O}$
+
 $RR3=I/((I+P)+(R+NC+O)+eU)$
-```{r}
+```{r include=FALSE}
 # I is number of completed cases; U is the number of unknown eligible cases
-#Assume that the share of cases of unknown eligibility who would have been eligible is the same as the share among the cases whose eligibility was determined
-e=(12719+45821)/(70790-3001)
-RR3<-35823/(70790-8853+e*3001)
+# Assume that the share of cases of unknown eligibility who would have been eligible is the same as the share among the cases whose eligibility was determined
+```
+
+```{r results = 'hide'}
+e=(13115+45821)/(70790-3001)
+RR3<-35823/(45821+13115+e*3001)
 RR3
 ```
-#3.
+The response rate for these data, as calculated by the AAPOR Response Rate 3 formula, is 58.2%.
+
+# Q3.
 In each adjustment class b:
+
 The unknown eligibility adjustment for sample units $s_{b,KN}$ is 
-$a_{1b}= \sum_{i\in{sb}}d_{0i}/\sum_{i\in{sb,KN}}d_{0i}$, where $d_{0i}$ is the base weight
+$a_{1b}= \sum_{i\in{sb}}d_{0i}/\sum_{i\in{sb,KN}}d_{0i}$, where $d_{0i}$ is the base weight.
+
 The final adjusted weight is $a_{1b}*d_{0i}$
-```{r}
+```{r message = FALSE}
+# Observe distribution of data for CNREG by OUTCOME groupings
 table(dat$CENREG,dat$OUTCOME,exclude = NULL)
 
+# Group data by CENREG and OUTCOME; sum weights within those groupings
 dat2<-dat %>%
   group_by(CENREG, OUTCOME) %>%
   summarise(base=sum(WTIA_PD))
+
+# Calculate a1b for each of the 4 classes
 w1=sum(dat2$base[1:4])/sum(dat2$base[1:3])
 w2=sum(dat2$base[5:8])/sum(dat2$base[5:7])
 w3=sum(dat2$base[9:12])/sum(dat2$base[9:11])
@@ -70,6 +85,8 @@ dat3<-dat %>%
   group_by(CENREG, OUTCOME) %>%
   summarise(base=WTIA_PD,
             CTSTAT3)
+
+# Calculate unknown eligibility adjusted weights
 dat3$WT_Eligible<-case_when(
   dat3$CENREG==1&!dat3$OUTCOME=="Unknown Eligible"~dat3$base*w1,
   dat3$CENREG==2&!dat3$OUTCOME=="Unknown Eligible"~dat3$base*w2,
@@ -78,24 +95,55 @@ dat3$WT_Eligible<-case_when(
   dat3$OUTCOME=="Unknown Eligible"~dat3$base*0,
   TRUE~as.numeric(NA))
 
+#Drop unknown eligibility cases from data frame
 dat4<-dat3%>%filter(!OUTCOME=="Unknown Eligible")
+```
+
+This is a scatterplot of the base weights and the unknown eligibility adjusted weights, shown by census region, the variable used for the weighting class:
+
+```{r include = FALSE}
 dat4%>%ggplot(aes(base,WT_Eligible,color=factor(CENREG)))+
   geom_point(alpha=0.2, size=2) +
   facet_grid(vars(OUTCOME),vars(CENREG))+
   labs(x="Base weight",
    y="Unknown Wligibility Adjusted Weight",
    color="Census Region of Residence")
+
 ```
-#4.
-```{r}
+
+# Q4.
+```{r warning = FALSE}
 dat5<-dat%>%filter(OUTCOME=="Nonresponse")
 
-m1=mean(dat5$CTSTAT3,na.rm=T)
-m2=mean(dat5$CTSTAT3*dat5$WTIA_PD,na.rm=T)
-m1;m2
+unwt.mean=mean(dat5$CTSTAT3,na.rm=T)
+
+wt.dsn <- svydesign(~1, strata = NULL, weights = ~WTIA_PD, data = dat5)
+wt.mean <- svymean(~CTSTAT3, wt.dsn, na.rm=TRUE)
+
+unwt.mean;wt.mean
+
 dat5%>%ggplot(aes(dat5$CTSTAT3,dat5$WTIA_PD))+
   geom_point()+
     labs(x="Number of contact attempts that resulted in noncontact",
    y="Base weight")
+
+
+
+
 ```
-The mean of CTSTAT3 among nonrespondents after using base weight is much larger than the mean without using any weights. The base weight reflects the probability of household selection. Household with a high probability received lower weights. The value of CTSTAT3 of households with low selection probabilities will get inflated a lot (See the plot above). Therefore, the mean after weighting gets much larger.
+
+The mean of CTSTAT3 among nonrespondents without base weights is 4.86, while after using base weight it is 4.91. The mean value of CTSTAT3 is inflated slightly when using the base weights because, as can be seen from the scatterplot of baseweight and CTSTAT3 above, the cases with base weights above 10,000 mostly required more than 5 contact attempts before they were classified as noncontacts. The large base weights for those cases are driving the weighted mean value to be highter. 
+
+However, it should be noted that the NHIS description file says "not every analysis involving the paradata File will entail making population inferences. For example, a data user may want to describe the level of effort (number of contact attempts) expended by NHIS interviewers across a wide range of final case dispositions (complete interview, partial interview, noncontact, refusal, etc.). Use of WTIA_PD would not be necessary in this situation." The number of contact attempts it took to reach a house is not intrinsically related to that house's selection probability, so it doesn't really make sense to use the weights when analyzing this variable. 
+
+# Q5a. 
+
+
+# Q5b.
+
+
+# Q5c.
+
+
+# Q6. 
+
