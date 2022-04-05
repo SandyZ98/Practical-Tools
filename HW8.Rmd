@@ -106,7 +106,7 @@ dat4%>%ggplot(aes(base,WT_Eligible,color=factor(CENREG)))+
   geom_point(alpha=0.2, size=2) +
   facet_grid(vars(OUTCOME),vars(CENREG))+
   labs(x="Base weight",
-   y="Unknown Wligibility Adjusted Weight",
+   y="Unknown Eligibility Adjusted Weight",
    color="Census Region of Residence")
 
 ```
@@ -117,7 +117,7 @@ dat5<-dat%>%filter(OUTCOME=="Nonresponse")
 
 unwt.mean=mean(dat5$CTSTAT3,na.rm=T)
 
-wt.dsn <- svydesign(~1, strata = NULL, weights = ~WTIA_PD, data = dat5)
+wt.dsn <- svydesign(ids = ~PSU_P, strata = ~STRAT_P, weights = ~WTIA_PD, data = dat5, nest = TRUE)
 wt.mean <- svymean(~CTSTAT3, wt.dsn, na.rm=TRUE)
 
 unwt.mean;wt.mean
@@ -127,9 +127,6 @@ dat5%>%ggplot(aes(dat5$CTSTAT3,dat5$WTIA_PD))+
     labs(x="Number of contact attempts that resulted in noncontact",
    y="Base weight")
 
-
-
-
 ```
 
 The mean of CTSTAT3 among nonrespondents without base weights is 4.86, while after using base weight it is 4.91. The mean value of CTSTAT3 is inflated slightly when using the base weights because, as can be seen from the scatterplot of baseweight and CTSTAT3 above, the cases with base weights above 10,000 mostly required more than 5 contact attempts before they were classified as noncontacts. The large base weights for those cases are driving the weighted mean value to be highter. 
@@ -138,12 +135,109 @@ However, it should be noted that the NHIS description file says "not every analy
 
 # Q5a. 
 
+```{r results = 'hide'}
+#Create binary indicator for response
+dat$resp <- case_when(dat$OUTCOME1==201 ~ 1,
+                       TRUE ~ 0
+                       )
+
+#Design for weighted model
+wt.dsn2 <- svydesign(ids = ~PSU_P, strata = ~STRAT_P, weights = ~WTIA_PD, data = dat, nest = TRUE)
+
+#Weighted binary propensity model
+glm.svylogit <- svyglm(resp ~ as.factor(CENREG) + as.factor(STRAT_P) +  as.factor(INTV_MON), 
+                       family = binomial(link="logit"), 
+                       design = wt.dsn2)
+
+summary(glm.svylogit)
+
+#Predicted logit values
+dat$l.hat.svylogit <- glm.svylogit$linear.predictors
+#Predicted probabilities
+dat$pred.svylogit <- exp(dat$l.hat.svylogit)/ (1+ exp(dat$l.hat.svylogit))
+#Nonresponse adjustment 
+dat$nors.adj <- 1/dat$pred.svylogit
+
+#Add unknown eligibility weights to main dat file
+dat$WT_Eligible <-case_when(
+  dat$CENREG==1&!dat$OUTCOME=="Unknown Eligible"~dat$WTIA_PD*w1,
+  dat$CENREG==2&!dat$OUTCOME=="Unknown Eligible"~dat$WTIA_PD*w2,
+  dat$CENREG==3&!dat$OUTCOME=="Unknown Eligible"~dat$WTIA_PD*w3,
+  dat$CENREG==4&!dat$OUTCOME=="Unknown Eligible"~dat$WTIA_PD*w4,
+  dat$OUTCOME=="Unknown Eligible"~dat$WTIA_PD*0,
+  TRUE~as.numeric(NA))
+
+#Nonresponse adjusted weight
+dat$nors.wt <-case_when(
+  dat$OUTCOME1==201~dat$WT_Eligible*dat$nors.adj,
+  TRUE~0)
+
+```
+
+```{r}
+
+resp.dat <- dat %>%
+  filter(OUTCOME1==201)
+
+nors.dat <- dat %>%
+  filter(OUTCOME1==213|OUTCOME1==215|OUTCOME1==217|OUTCOME1==218|OUTCOME1==219)
+
+#Predicted probabilities: Respondents
+summary(resp.dat$pred.svylogit)
+#Predicted probabilities: Nonrespondents
+summary(nors.dat$pred.svylogit)
+
+```
+Descriptive statistics for the propensity scores of respondents and nonrespondents are shown above, with the respondents shown on top and the nonrespondents shown below. The minimum and maximum values are the same for respondents and nonrespondents, but the values skew larger for respondents than nonrespondents. The median and mean values are larger for the respondents (mean=.5353) than nonrespondents (mean=.5124).
 
 # Q5b.
+```{r include = FALSE}
+unk.wt.sum <- sum(dat$WT_Eligible)
+nors.wt.sum <- sum(dat$nors.wt)
 
+unk.wt.sum; nors.wt.sum
+
+```
+The sum of the unknown eligibility adjusted weights is 127,454,588, while the sum of the nonresponse adjusted weights is 132,293,164. The sum of the weights with the unknown eligibility adjustment and with the nonrseponse adjustment should be approximately the same, because in each case, the weights for the cases that are dropped out at that stage are reapplied to the other cases that are included in the adjustment. The unknown eligibility weight redistributes the weights for the unknown eligibility cases to the the known eligibility cases, and the nonresponse weight redistributes the weights for the nonresponding cases to the responding cases.  
 
 # Q5c.
+```{r echo = FALSE}
+resp.dat <- dat %>%
+  filter(OUTCOME1==201)
 
+resp.dat%>%ggplot(aes(WT_Eligible,nors.wt))+
+  geom_point()+
+    labs(x="Unknown Eligibility Adjusted Weight (Respondents Only)",
+   y="Nonresponse Adjusted Weight (Respondents Only)")
+```
 
 # Q6. 
 
+```{r results='hide'}
+
+#without weights
+unwt.mean <- mean(dat$CTSTAT3, na.rm=T)
+
+#base weights
+wt.dsn <- svydesign(ids = ~PSU_P, strata = ~STRAT_P, weights = ~WTIA_PD, data = dat, nest = TRUE)
+basewt.mean <- svymean(~CTSTAT3, wt.dsn, na.rm=TRUE)
+
+#UNK weights
+wt.dsn2 <- svydesign(ids = ~PSU_P, strata = ~STRAT_P, weights = ~WT_Eligible, data = dat, nest = TRUE)
+unkwt.mean <- svymean(~CTSTAT3, wt.dsn2, na.rm=TRUE)
+
+#Nonrespnse weights
+wt.dsn3 <- svydesign(ids = ~PSU_P, strata = ~STRAT_P, weights = ~nors.wt, data = dat, nest = TRUE)
+norswt.mean <- svymean(~CTSTAT3, wt.dsn3, na.rm=TRUE)
+
+unwt.mean; basewt.mean; unkwt.mean; norswt.mean
+
+```
+
+Unweighted mean: 2.946632
+
+Base weighted mean: 2.9382
+
+Unknown eligibility weighted mean: 2.7501
+
+Nonresponse weighted mean: 1.9219
