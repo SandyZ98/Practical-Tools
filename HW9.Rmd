@@ -1,0 +1,77 @@
+---
+title: "SURVMETH 745 HW9"
+author: "Stacey Frank & Chendi Zhao"
+date: "4/12/2022"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+
+library(PracTools)
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+
+data(nhis)
+
+names(nhis)
+dim(nhis)
+
+```
+# 13.9
+
+```{r}
+
+set.seed(15097)
+
+cart1 <- rpart(resp ~ age + sex + hisp + race + parents + educ, 
+               method = "class", 
+               control = rpart.control(minbucket = 50, cp = 0), 
+               data = nhis)
+
+print(cart1, digits = 4)
+
+table(cart1$where)
+```
+```{r}
+
+cols <- ifelse(cart1$frame$yval == 1, "gray50", "black")
+
+prp(cart1, main = "Tree for NR adjustment classes in NHIS", 
+    extra=106, 
+    nn=TRUE,
+    fallen.leaves=TRUE,
+    branch=.5,
+    faclen=0, 
+    trace=1, 
+    shadow.col="gray",
+    branch.lty=1,
+    branch.type=5,
+    split.cex=1.2,
+    split.prefix="is ",
+    split.suffix="?", 
+    col=cols, border.col=cols,
+    split.box.col="lightgray",
+    split.border.col="darkgray",
+    split.round=0.5)
+
+```
+```{r}
+#unweighted response rate by node
+
+unwt.rr <- by (as.numeric(nhis[, "resp"]), cart1$where, mean)
+
+unwt.rr
+```
+
