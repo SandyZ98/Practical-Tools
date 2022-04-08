@@ -9,16 +9,16 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
 
 library(PracTools)
 library(tidyverse)
 library(rpart)
 library(rpart.plot)
 
-```
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r include=FALSE}
@@ -31,7 +31,7 @@ dim(nhis)
 ```
 # 13.9
 
-```{r}
+```{r results='hide'}
 
 set.seed(15097)
 
@@ -44,7 +44,11 @@ print(cart1, digits = 4)
 
 table(cart1$where)
 ```
-```{r}
+This CART classification tree has nine terminal nodes. The first node is classified as all of those respondents and nonrespondents who have a GED or more education. The eight other nodes come from among the group that have less than a GED.The next split in the tree is between those who are aged 56 or older, and those younger than age 56. Of those who are younger than age 56, the tree divides those cases into three terminal nodes. Selected persons who do not have a parent in the family are put into one category. Of those who do have a parent present in the family, they are divided into two terminal nodes, one of people who are aged 33 or older, and those who are younger than 33. 
+
+Of those people who are aged 56 or older and have less than a GED education, those are divided into five terminal nodes. The first is those are Hispanic. Of those who are non-Hispanic, those who are aged 82 or older are divided into their own terminal node. For non-Hispanics who are between age 56 and 81, they are divided based on education again. Of those who have an education level of some high school education or more, they are divided on age, with cases who are aged 56-60 divided into one node and those who are aged 61-81 being divided into another node. The last node is those between the ages of 56 and 81 who have an education level of 8th grade or less. A visual representation of the classification tree is below.
+
+```{r echo = FALSE}
 
 cols <- ifelse(cart1$frame$yval == 1, "gray50", "black")
 
@@ -67,11 +71,13 @@ prp(cart1, main = "Tree for NR adjustment classes in NHIS",
     split.round=0.5)
 
 ```
-```{r}
+```{r results='hide'}
 #unweighted response rate by node
 
 unwt.rr <- by (as.numeric(nhis[, "resp"]), cart1$where, mean)
 
 unwt.rr
 ```
+The unweighted response rates in each of the nine nodes that are formed are: 1) 50%, 2) 51%, 3) 48%, 4) 64%, 5) 66%, 6) 46%, 7) 64%, 8) 69%, and 9) 73%.
 
+# 13.10
