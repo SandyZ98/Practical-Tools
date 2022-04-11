@@ -83,20 +83,24 @@ The unweighted response rates in each of the nine nodes that are formed are: 1) 
 # 13.10
 ##a.Using classes identified from 13.9
 ```{r}
+#weighted response rate by node
+wt.rr <- by(data = data.frame(resp = as.numeric(nhis[,"resp"]),
+wt = nhis[,"svywt"]),
+cart1$where,
+function(x) {weighted.mean(x$resp, x$wt)} )
+
+
 nhis.NR <- cbind(nhis, NR.class=cart1$where)
 table(nhis.NR$NR.class, useNA="always")
-```
 
-##Alternative3 Unweighted response rate
-```{r}
-alt3a=by(as.numeric(nhis[, "resp"]), nhis.NR$NR.class, mean)
-```
-##Alternative4 Weighted response rate
-```{r}
-alt4a=by(data = data.frame(resp = as.numeric(nhis[,"resp"]),
-wt = nhis[,"svywt"]),
- nhis.NR$NR.class,
-function(x) {weighted.mean(x$resp, x$wt)})
+tmp1 <- cbind(NR.class=as.numeric(names(wt.rr)), unwt.rr, wt.rr)
+nhis.NR <- merge(nhis.NR, data.frame(tmp1), by="NR.class")
+nhis.NR <- nhis.NR[order(nhis.NR$ID),]
+
+nhis.NR%>%
+group_by(NR.class)%>%
+summarise(alt3a=mean(unwt.rr),
+alt4a=mean(wt.rr))
 ```
 
 
@@ -121,11 +125,7 @@ alt4b=by(data = data.frame(resp = as.numeric(nhis[,"resp"]),
 wt = nhis[,"svywt"]),
  p.class$p.class,
 function(x) {weighted.mean(x$resp, x$wt)})
-```
 
-## Result
-```{r}
-cbind(alt3a,alt4a)
 cbind(alt3b,alt4b)
 ```
 
