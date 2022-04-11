@@ -83,18 +83,7 @@ The unweighted response rates in each of the nine nodes that are formed are: 1) 
 # 13.10
 ##a.Using classes identified from 13.9
 ```{r}
-#weighted response rate by node
-wt.rr <- by(data = data.frame(resp = as.numeric(nhis[,"resp"]),
-wt = nhis[,"svywt"]),
-cart1$where,
-function(x) {weighted.mean(x$resp, x$wt)} )
-
-
 nhis.NR <- cbind(nhis, NR.class=cart1$where)
-tmp1 <- cbind(NR.class=as.numeric(names(wt.rr)), unwt.rr, wt.rr)
-nhis.NR <- merge(nhis.NR, data.frame(tmp1), by="NR.class")
-nhis.NR <- nhis.NR[order(nhis.NR$ID),]
-
 table(nhis.NR$NR.class, useNA="always")
 ```
 
