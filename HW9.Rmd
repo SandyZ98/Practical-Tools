@@ -81,3 +81,68 @@ unwt.rr
 The unweighted response rates in each of the nine nodes that are formed are: 1) 50%, 2) 51%, 3) 48%, 4) 64%, 5) 66%, 6) 46%, 7) 64%, 8) 69%, and 9) 73%.
 
 # 13.10
+##a.Using classes identified from 13.9
+```{r}
+#weighted response rate by node
+wt.rr <- by(data = data.frame(resp = as.numeric(nhis[,"resp"]),
+wt = nhis[,"svywt"]),
+cart1$where,
+function(x) {weighted.mean(x$resp, x$wt)} )
+
+
+nhis.NR <- cbind(nhis, NR.class=cart1$where)
+tmp1 <- cbind(NR.class=as.numeric(names(wt.rr)), unwt.rr, wt.rr)
+nhis.NR <- merge(nhis.NR, data.frame(tmp1), by="NR.class")
+nhis.NR <- nhis.NR[order(nhis.NR$ID),]
+
+table(nhis.NR$NR.class, useNA="always")
+```
+
+##Alternative3 Unweighted response rate
+```{r}
+alt3a=by(as.numeric(nhis[, "resp"]), nhis.NR$NR.class, mean)
+```
+##Alternative4 Weighted response rate
+```{r}
+alt4a=by(data = data.frame(resp = as.numeric(nhis[,"resp"]),
+wt = nhis[,"svywt"]),
+ nhis.NR$NR.class,
+function(x) {weighted.mean(x$resp, x$wt)})
+```
+
+
+##b. Using classes identified from alternative 1
+```{r}
+p.class <- pclass(formula = resp~age +
+as.factor(hisp) +
+as.factor(race) +
+as.factor(parents_r) +
+as.factor(educ_r),
+type = "unwtd", data = nhis, link="logit", numcl=5)
+table(p.class$p.class, useNA="always")
+```
+
+##Alternative3 Unweighted response rate
+```{r}
+alt3b=by(as.numeric(nhis[, "resp"]), p.class$p.class, mean)
+```
+##Alternative4 Weighted response rate
+```{r}
+alt4b=by(data = data.frame(resp = as.numeric(nhis[,"resp"]),
+wt = nhis[,"svywt"]),
+ p.class$p.class,
+function(x) {weighted.mean(x$resp, x$wt)})
+```
+
+## Result
+```{r}
+cbind(alt3a,alt4a)
+cbind(alt3b,alt4b)
+```
+
+"Alt3a" and "Alt4a" were formed using nince classes identified from Exercise 13.9."Alt3a" and "Alt4a" were formed using fiveclasses identified from Alternative1 in Example 13.8.
+
+Both alternatives produced similiar weights under the two scenarios. In practice, we need to consider the survey design when selecting the weigts to use. Ff every unit in a class has the same probability of responding, i.e., the grouping is very effective,alternative 3 is preferred.
+Alternative 4 is an estimate of the population response rate in class c assuming MAR. This estimate is approximately unbiased with respect to the compound sampling/response mechanism or with respect to a model with a common response probability within each class.This choice can be inefficient if weights vary much within class and units have a common propensity score for unit i.
+
+Five classes are usually recommended based on some analyses in Cochran (1968). With a large sample, there is no reason not to create more classes. This can help make each more homogeneous on covariates and propensity scores.More classes may decrease bias due to nonresponse but may increase variances by creating bigger spread in the weights.
