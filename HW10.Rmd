@@ -1,0 +1,83 @@
+---
+title: "SURVMETH 745 HW10"
+author: "Stacey Frank & Chendi Zhao"
+date: "4/16/2022"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(PracTools)
+library(survey)
+library(tidyverse)
+library(janitor)
+```
+
+#14.1. Use the smho.N874 dataset to complete this exercise on poststratification.
+Select a simple random sample of size n = 80 without replacement.
+If you use R, set the random number seed to −530049348 with the set.seed
+command.
+```{r}
+set.seed(-530049348)
+dat<-smho.N874
+dim(dat)
+names(dat)
+
+sam<-dat[sample(nrow(dat), size=80,replace = F), ]
+
+```
+## (a) 
+```{r}
+dat%>%group_by(hosp.type)%>%
+  summarise_at(vars(EXPTOTAL), list(mean = mean))
+```
+We want to check whether the means of expenditures vary across the five hospital types. If so, that means hospital type is a good predictor of the expenditures as well as a good auxiliary variable for poststratification. 
+According to the output above, the means are different and we can use hospital type for poststratification.
+
+
+## (b)
+```{r}
+tabyl(dat$hosp.type,exclude = NULL)
+tabyl(sam$hosp.type,exclude = NULL)
+```
+From the outputs above, all five hospital types are presented in the sample. If there is one type missing, that will result in unstable estimates of the population controls and adds unnecessarily
+to the variability of the final weights. To avoid these problems, we may consider collasping two types and form less strata.
+
+## (c) 
+```{r}
+d <- rep(nrow(dat)/80, 80)
+f1 <- rep(80/nrow(dat), 80)
+srs.dsgn <- svydesign(ids = ~0, strata = NULL, fpc = ~f1, data = sam,weights = ~d)
+
+N.PS <- xtabs(~hosp.type,data = dat)
+ps.dsgn <- postStratify(design = srs.dsgn,
+strata = ~hosp.type,
+population = N.PS)
+
+# Weights-Before
+sum(weights(srs.dsgn))
+# Weights-After
+sum(weights(ps.dsgn))
+```
+The weights sum to before and after poststratification are the same. As we expected, the both weights sum should equal to the population
+counts.
+
+## (d)
+```{r}
+svytotal(~ as.factor(hosp.type), ps.dsgn, na.rm=TRUE)
+```
+# (e) 
+```{r}
+ options(scipen = n)
+svytotal(~EXPTOTAL, srs.dsgn)
+svytotal(~EXPTOTAL, ps.dsgn)
+```
+In this sample, the srs and poststratified estimated totals
+are similar and the latter has slightly a smaller SE.
