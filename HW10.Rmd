@@ -110,9 +110,7 @@ smho.dsgn <- svydesign(ids = ~0, strata = NULL, data = data.frame(sam.dat), weig
 x.beds <- sum(smho$BEDS)
 x.seen <- sum(smho$SEENCNT)
 x.eoy <- sum(smho$EOYCNT)
-# htype.count <- smho %>% count(hosp.type)
-# x.htype <- htype.count$n
-x.htype <- table(smho[, "hosp.type"])[-1]
+x.htype <- table(smho$hosp.type)[-1]
 N <- nrow(smho)
 
 pop.tots <- c('(Intercept)' = N, 
