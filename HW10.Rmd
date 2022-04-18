@@ -112,7 +112,7 @@ x.seen <- sum(smho$SEENCNT)
 x.eoy <- sum(smho$EOYCNT)
 # htype.count <- smho %>% count(hosp.type)
 # x.htype <- htype.count$n
-x.htype <- table(smho$hosp.type)
+x.htype <- table(smho[, "hosp.type"])[-1]
 N <- nrow(smho)
 
 pop.tots <- c('(Intercept)' = N, 
@@ -137,11 +137,11 @@ sam.lin <- calibrate(design = smho.dsgn,
 svytotal(~BEDS, sam.lin)
 svytotal(~SEENCNT, sam.lin)
 svytotal(~EOYCNT, sam.lin)
+svytotal(~hosp.type, sam.lin)
 
-svytable(~hosp.type, sam.lin)
 ```
 
-Looking for standard errors that are close to zero to demonstrate that weights are calibrated. 
+The standard errors are nearly zero for all the auxiliary variable totals in the calibrated sample dataset, which indicates that the weights have been calibrated correctly. 
 
 ## (b) What are the ranges of the base weights and calibrated weights?
 
@@ -152,4 +152,4 @@ summary(weights(smho.dsgn))
 summary(weights(sam.lin))
 
 ```
-
+The base weights range from 2.187 to 33.679. The calibrated weights range from -0.2337 to 41.2401. The negative weights and the large increase in the maximum weight size indicates that putting some bounds on the size of the weights would be useful. 
