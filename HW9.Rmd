@@ -129,9 +129,10 @@ function(x) {weighted.mean(x$resp, x$wt)})
 cbind(alt3b,alt4b)
 ```
 
-"Alt3a" and "Alt4a" were formed using nince classes identified from Exercise 13.9."Alt3a" and "Alt4a" were formed using fiveclasses identified from Alternative1 in Example 13.8.
+"Alt3a" and "Alt4a" were formed using nine classes identified from Exercise 13.9."Alt3a" and "Alt4a" were formed using five classes identified from Alternative1 in Example 13.8.
 
-Both alternatives produced similiar weights under the two scenarios. In practice, we need to consider the survey design when selecting the weigts to use. Ff every unit in a class has the same probability of responding, i.e., the grouping is very effective,alternative 3 is preferred.
+Both alternatives produced similar weights under the two scenarios. In practice, we need to consider the survey design when selecting the weights to use. If every unit in a class has the same probability of responding, i.e., the grouping is very effective, alternative 3 is preferred.
+
 Alternative 4 is an estimate of the population response rate in class c assuming MAR. This estimate is approximately unbiased with respect to the compound sampling/response mechanism or with respect to a model with a common response probability within each class.This choice can be inefficient if weights vary much within class and units have a common propensity score for unit i.
 
-Five classes are usually recommended based on some analyses in Cochran (1968). With a large sample, there is no reason not to create more classes. This can help make each more homogeneous on covariates and propensity scores.More classes may decrease bias due to nonresponse but may increase variances by creating bigger spread in the weights.
+Five classes are usually recommended based on some analyses in Cochran (1968). With a large sample, there is no reason not to create more classes. This can help make each more homogeneous on covariates and propensity scores. More classes may decrease bias due to nonresponse but may increase variances by creating bigger spread in the weights.

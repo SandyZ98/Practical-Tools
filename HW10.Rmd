@@ -18,9 +18,11 @@ library(PracTools)
 library(survey)
 library(tidyverse)
 library(janitor)
+library(sampling)
+library(survey)
 ```
 
-#14.1. Use the smho.N874 dataset to complete this exercise on poststratification.
+# 14.1. Use the smho.N874 dataset to complete this exercise on poststratification.
 Select a simple random sample of size n = 80 without replacement.
 If you use R, set the random number seed to −530049348 with the set.seed
 command.
@@ -73,7 +75,7 @@ counts.
 ```{r}
 svytotal(~ as.factor(hosp.type), ps.dsgn, na.rm=TRUE)
 ```
-# (e) 
+## (e) 
 ```{r}
  options(scipen = n)
 svytotal(~EXPTOTAL, srs.dsgn)
@@ -81,3 +83,73 @@ svytotal(~EXPTOTAL, ps.dsgn)
 ```
 In this sample, the srs and poststratified estimated totals
 are similar and the latter has slightly a smaller SE.
+
+# 14.3 GREG weights
+
+```{r}
+data(smho.N874)
+smho <- smho.N874[smho.N874$hosp.type !=4,]
+
+# Draw section 14.3.2 sample
+
+x <- smho[,"BEDS"]
+x[x <= 5] <- 5
+x <- sqrt(x)
+n <- 80
+set.seed(428274453)
+pk <- n*x/sum(x)
+sam <- UPrandomsystematic(pk)
+sam <- sam==1
+sam.dat <- smho[sam, ]
+d <- 1/pk[sam]
+
+smho.dsgn <- svydesign(ids = ~0, strata = NULL, data = data.frame(sam.dat), weights = ~d)
+
+# aux pop totals
+
+x.beds <- sum(smho$BEDS)
+x.seen <- sum(smho$SEENCNT)
+x.eoy <- sum(smho$EOYCNT)
+# htype.count <- smho %>% count(hosp.type)
+# x.htype <- htype.count$n
+x.htype <- table(smho$hosp.type)
+N <- nrow(smho)
+
+pop.tots <- c('(Intercept)' = N, 
+              BEDS = x.beds, 
+              SEENCNT = x.seen, 
+              EOYCNT = x.eoy, 
+              HTYPE = x.htype)
+
+# GREG
+
+sam.lin <- calibrate(design = smho.dsgn,
+                     formula = ~ BEDS + SEENCNT + EOYCNT + as.factor(hosp.type), 
+                     population = pop.tots,
+                     calfn="linear")
+
+```
+
+## (a) Verify that the weights are calibrated
+
+```{r}
+
+svytotal(~BEDS, sam.lin)
+svytotal(~SEENCNT, sam.lin)
+svytotal(~EOYCNT, sam.lin)
+
+svytable(~hosp.type, sam.lin)
+```
+
+Looking for standard errors that are close to zero to demonstrate that weights are calibrated. 
+
+## (b) What are the ranges of the base weights and calibrated weights?
+
+```{r}
+
+summary(weights(smho.dsgn))
+
+summary(weights(sam.lin))
+
+```
+
